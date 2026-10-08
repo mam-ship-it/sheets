@@ -204,7 +204,7 @@ try{const r=await fetch(API+'models?pageSize=200',{headers:H}),j=await r.json();
 o.cands=[...new Set(o.cands)].slice(0,9);return o})())}
 async function gem(p,key){const API='https://generativelanguage.googleapis.com/v1beta/',H={'Content-Type':'application/json','x-goog-api-key':key},keyBad=m=>/api[ _-]?key|API_KEY_INVALID|PERMISSION_DENIED|UNAUTHENTICATED/i.test(m||''),d=await gdisc(key);if(d.bad)throw new Error('API key rejected: '+d.bad);
 let last=d.err;const errs=[],sleep=ms=>new Promise(r=>setTimeout(r,ms)),msgOf=x=>(x.j.error&&x.j.error.message)||'';
-const call=async(m,mt,th)=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),170000),gc={responseMimeType:'application/json',temperature:.2,maxOutputTokens:mt};if(th)gc.thinkingConfig=/gemini-2\.5/.test(m)?{thinkingBudget:0}:{thinkingLevel:'low'};try{const r=await fetch(API+'models/'+m+':generateContent',{method:'POST',headers:H,signal:ac.signal,body:JSON.stringify({contents:[{parts:[{text:p}]}],generationConfig:gc})});return{r,j:await r.json()}}finally{clearTimeout(t)}};
+const call=async(m,mt,th)=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),45000),gc={responseMimeType:'application/json',temperature:.2,maxOutputTokens:mt};if(th)gc.thinkingConfig=/gemini-2\.5/.test(m)?{thinkingBudget:0}:{thinkingLevel:'low'};try{const r=await fetch(API+'models/'+m+':generateContent',{method:'POST',headers:H,signal:ac.signal,body:JSON.stringify({contents:[{parts:[{text:p}]}],generationConfig:gc})});return{r,j:await r.json()}}finally{clearTimeout(t)}};
 for(const m of d.cands){try{let mt=Math.min(32000,d.lim[m]||32000),th=1,x=await call(m,mt,th);if(x.r.status==400&&/think/i.test(msgOf(x))){th=0;x=await call(m,mt,th)}if(x.r.status==400&&/token/i.test(msgOf(x))){mt=8192;x=await call(m,mt,th)}for(const w of [2000,5000]){if(x.r.status==503||x.r.status==429||x.r.status==500){await sleep(w);x=await call(m,mt,th)}}const{r,j}=x;if(!r.ok){const msg=msgOf(x)||('HTTP '+r.status);last=m+': '+msg;errs.push(m+' ('+r.status+')');if(r.status==401||r.status==403||(r.status==400&&keyBad(msg)))throw new Error('API key rejected: '+msg);continue}const cd=j.candidates&&j.candidates[0],t=((cd&&cd.content&&cd.content.parts)||[]).filter(z=>!z.thought).map(z=>z.text||'').join('').replace(/^\s*```json|```\s*$/g,'').trim();let o;try{o=JSON.parse(t)}catch(e){const a=t.indexOf('{'),b=t.lastIndexOf('}');try{o=JSON.parse(t.slice(a,b+1))}catch(e2){last=m+': '+(cd&&cd.finishReason=='MAX_TOKENS'?'response was cut off':'invalid JSON');continue}}try{sessionStorage.setItem('gm',m)}catch(e){}return o}catch(e){if(/API key rejected/.test(e.message))throw e;last=m+': '+(e.name=='AbortError'?'timeout':e.message)}}
 try{sessionStorage.removeItem('gm')}catch(e){}
 throw new Error('Smart grading is busy or unavailable right now, please try again in a minute ('+(errs.length||0)+' attempts)')}
@@ -259,10 +259,10 @@ async function cloudRefresh(){if(!sb)return alert('Cloud is not configured');con
 async function genKey(k,scn,gk){const S=SH[k],labels=S.f.filter(f=>f.t!='h').map(f=>f.l),cats=S.he.map(h=>h[0]),H0='You are an expert OB/GYN nursing instructor. Read the case scenario and build PART of the answer key for a nursing student sheet. Return JSON only (no markdown, no commentary):\n',T='\nScenario: '+scn;
 const pA=H0+`{"answers":{<for EVERY label below, the exact label as key>:"expected answer from the scenario: a number, short text, Yes/No (checkbox and yes/no fields: Yes or No), ISO date for dates, or 'Not mentioned'"}${k=='lab'?',"partograph":[{"hour":1,"cervix":0,"descent":0,"fhr":0,"contractions":0,"pulse":0}] ONLY if the scenario gives hourly values (otherwise omit this field)':''}}
 Labels: ${labels.join(' | ')}`+T;
-const pC=H0+`{"careplans":[ALL clinically valid nursing problems supported by the scenario (usually 8 to 12, never padded). Each item: {"rank":1-N (ideal order),"priority":1-4 (1 airway/breathing, 2 circulation, 3 medical-surgical/physical, 4 psychological/educational),"problem":"best nursing diagnosis in the form 'X related to Y as evidenced by Z'","alt_diagnoses":[up to 5 other acceptable wordings or NANDA labels for the SAME problem],"keywords":[up to 15 words, phrases, abbreviations and lay-term synonyms a student may use for this problem],"goal":"measurable goal with a time frame","alt_goals":[up to 3 other acceptable measurable goals],"interventions":[{"text":"","type":"assessment|nursing|medication","keywords":[up to 6 synonyms and acceptable alternatives]}] (6 to 8 acceptable interventions per problem covering every acceptable way to manage it),"unsafe":[keywords of dangerous actions for this problem]}],
+const pC=H0+`{"careplans":[ALL clinically valid nursing problems supported by the scenario (usually 6 to 8, never padded). Each item: {"rank":1-N (ideal order),"priority":1-4 (1 airway/breathing, 2 circulation, 3 medical-surgical/physical, 4 psychological/educational),"problem":"best nursing diagnosis in the form 'X related to Y as evidenced by Z'","alt_diagnoses":[up to 3 other acceptable wordings or NANDA labels for the SAME problem],"keywords":[up to 10 words, phrases, abbreviations and lay-term synonyms a student may use for this problem],"goal":"measurable goal with a time frame","alt_goals":[up to 1 other acceptable measurable goal],"interventions":[{"text":"","type":"assessment|nursing|medication","keywords":[up to 4 synonyms and acceptable alternatives]}] (4 to 5 acceptable interventions per problem covering every acceptable way to manage it),"unsafe":[keywords of dangerous actions for this problem]}],
 "unsafe":[general dangerous actions for this case]}
 Rules for careplans: use ONLY problems supported by the scenario; order by priority: airway/breathing first, then circulation, then medical-surgical, then psychological/other${k=='lab'?'; in labor the acute pain comes first':''}; interventions ordered assessment, then nursing care, then medications; be medically correct. FLEXIBILITY: this key lists ALL acceptable alternatives so that a student who chooses different but clinically correct problems, wording, goals or interventions is still accepted; a student is not expected to write every item. Never repeat the same problem twice (put other wordings in alt_diagnoses). Every nursing diagnosis must use the 'related to ... as evidenced by ...' format.`+T;
-const pH=H0+`{"he":[{"category":"","points":[{"text":"","keywords":[up to 8 synonyms and alternative wordings]}] (6 to 8 acceptable health-education points per category, appropriate to this case)}]} in this order: ${cats.join(', ')}
+const pH=H0+`{"he":[{"category":"","points":[{"text":"","keywords":[up to 5 synonyms and alternative wordings]}] (5 to 6 acceptable health-education points per category, appropriate to this case)}]} in this order: ${cats.join(', ')}
 FLEXIBILITY: list ALL acceptable alternatives so that any clinically correct health-education advice a student writes is accepted.`+T;
 const[a,c,h]=await Promise.all([AI(pA,gk),AI(pC,gk),AI(pH,gk).catch(()=>null)]);const j={answers:a&&a.answers,careplans:c&&c.careplans,he:h&&h.he,unsafe:(c&&c.unsafe)||[]};if(a&&a.partograph)j.partograph=a.partograph;if(!j.answers||!j.careplans)throw new Error('Incomplete answer key');return j}
 const _gcp=gcp;gcp=function(){const M=st.key&&st.key.careplans;return M&&M.length?gcpK(M):_gcp()};
@@ -282,7 +282,7 @@ toSheet=async function(){const t=($('#scn')||{}).value||'';if(t.trim().length<60
 if(_tsNoKey){_tsNoKey=0;st.ks='err';st.keyErr='skipped by student'}
 else{startKey(t);await Promise.race([st.keyP,new Promise(r=>setTimeout(r,1500))]);if(/API key rejected/i.test(st.keyErr||'')){gkClear();askKey(t,'المفتاح مش مقبول من Google. اتأكد منه وجرب تاني.');return}}
 await _ts2();{const g=$('#app .grid')||$('#app .card');g&&g.insertAdjacentHTML('beforebegin','<div id="kst" style="margin:8px 0;font-size:14px"></div>');renderKS()}};
-const _fin3=fin;fin=async function(){if(st.keyP&&!st.keyDone){if(st._fw)return;st._fw=1;const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;z-index:98;background:#000a;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font:16px system-ui';o.innerHTML='<div class="spin"></div><p>Finalizing your grading...</p>';document.body.append(o);try{await Promise.race([st.keyP,new Promise(r=>setTimeout(r,40000))])}finally{o.remove();st._fw=0}}return _fin3.apply(this,arguments)};
+const _fin3=fin;fin=async function(){if(st.keyP&&!st.keyDone){if(st._fw)return;st._fw=1;const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;z-index:98;background:#000a;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font:16px system-ui';o.innerHTML='<div class="spin"></div><p>Finalizing your grading... keep this page open for a few seconds</p><p dir="rtl">لا تغلق الصفحة لثوانٍ حتى يتم حفظ نتيجتك</p>';document.body.append(o);try{await Promise.race([st.keyP,new Promise(r=>setTimeout(r,8000))])}finally{o.remove();st._fw=0}}return _fin3.apply(this,arguments)};
 
 /* ===== Student smart-grading key (OK button flow) ===== */
 let GKEY=(()=>{try{return sessionStorage.getItem('gk')||localStorage.getItem('gk')||''}catch(e){return ''}})();
@@ -477,4 +477,137 @@ const _chk0=chk;chk=function(s){if(sxOf(s)!='m')return _chk0(s);if(s.ov||s.ok)re
 const MPANEL='<div class="p"><h2>كيف يتم تصحيح الطلاب الذكور؟ (بدون تصحيح ذكي)</h2><div class="fl"><div class="fb"><b class="n">1</b><b>محرك الإجابة النموذجية</b><br><small>يعتمد على سيناريوك المحفوظ والحل النموذجي والشروط الداخلية. أكثر من 18 مشكلة تمريض مقبولة وأكثر من 25 نقطة تثقيف، ويفهم المرادفات والأخطاء الإملائية البسيطة وصياغات الطالب المختلفة.</small></div><div class="fb"><b class="n">2</b><b>فحوصات آلية</b><br><small>ورقة فاضية، تكرار، عبارات خطرة، مشكلة لم يتعرف عليها النظام، سيناريو مختلف، وتشابه مع طالب آخر.</small></div><div class="fb"><b class="n">3</b><b>مراجعتك</b><br><small>الورقة المتفق عليها "جاهزة للاعتماد"، والمشكوك فيها تظهر لك بأسبابها، ولا تُعتبر نهائية إلا باعتمادك.</small></div></div></div>';
 const TABS=SX=>{const n=x=>subs.filter(s=>sxOf(s)==x).length,b=(x,t)=>`<button class="${SX==x?'':'g'}" onclick="window._asx='${x}';window._af='all';dash('')">${t} (${n(x)})</button>`;return'<div class="p">'+b('f','👩 الطالبات (تصحيح ذكي)')+b('m','👨 الطلاب الذكور (نموذج داخلي)')+'</div>'};
 const _rev9=rev;rev=function(i){_rev9(i);const s=subs[i];if(sxOf(s)!='m')return;document.querySelectorAll('#app button').forEach(b=>{if(/aiGrade|aiSecond/.test(b.getAttribute('onclick')||''))b.remove()});const A=s.ans||{},L=[...(A.cpe||[]),...(A.hee||[]).map(x=>'تثقيف صحي ناقص: '+x)],p=document.querySelector('#app .ad .p');p&&p.insertAdjacentHTML('beforeend','<p class="mu">طالب ذكر: التصحيح بالنموذج الداخلي بدون تصحيح ذكي.</p>'+(L.length?'<b>ما رصده النظام في إجابته:</b><ul>'+L.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p>لم يرصد النظام أخطاء ظاهرة.</p>'))};
-</script></body></html>
+</script><style id="v3">
+html{font-size:17px}body{font-size:1rem}
+.w{width:100%;max-width:1280px;padding:14px}
+@media(min-width:1500px){html{font-size:19px}.w{max-width:1500px}}
+@media(max-width:600px){html{font-size:16px}.w{padding:8px}.card{padding:12px}button{padding:11px 14px}}
+.grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+input,select,textarea{font-size:1rem;padding:10px}label{font-size:.95rem}table{font-size:.95rem}td,th{text-align:start}
+#app{padding-top:50px}.opt{font-size:1.05rem}#pg,#cv,canvas{direction:ltr}
+:root[data-theme=dark]{--bg:#121a22;--c:#1b2631;--t:#e6edf3;--b:#34475a}
+:root[data-theme=light]{--bg:#f4f7fb;--c:#fff;--t:#1b2a3a;--b:#d5dee8}
+:root[data-theme=light] body{background:linear-gradient(135deg,#dff1f7,#efe3f8,#dff1f7)}
+:root[data-theme=light] .ad{color:#1b2a3a}:root[data-theme=light] .ad h2,:root[data-theme=light] .ad h3{color:#0b3a52}
+:root[data-theme=light] .ad .p{background:#fff;border-color:#d5dee8}:root[data-theme=light] .ad .fb,:root[data-theme=light] .ad .sc2{background:#f1f6fa;border-color:#d5dee8}
+:root[data-theme=light] .ad th{background:#0f6e8c;color:#fff}:root[data-theme=light] .ad td,:root[data-theme=light] .ad th{border-color:#d5dee8}
+:root[data-theme=light] .ad input,:root[data-theme=light] .ad select,:root[data-theme=light] .ad textarea{background:#fff;color:#1b2a3a;border-color:#d5dee8}
+:root[data-theme=light] .ad small,:root[data-theme=light] .ad .mu{color:#5a6b7c}:root[data-theme=light] .ad button.g{color:#1b2a3a;border-color:#9fb0cc}:root[data-theme=light] .ad button.ch.on{background:#cfe8f3}
+#v3b{position:fixed;top:8px;inset-inline-end:8px;z-index:10;display:flex;gap:6px}#v3b button{margin:0;padding:8px 14px;border-radius:22px;font-weight:700}
+#v3toast{position:fixed;left:8px;right:8px;bottom:12px;z-index:98;padding:12px 16px;border-radius:12px;color:#fff;font-weight:600;text-align:center}
+</style>
+<script>
+(function(){
+const root=document.documentElement,g=id=>document.getElementById(id);
+let LANG=localStorage.getItem('lang')||'ar',TH=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+const P=`Student=الطالب
+Admin=الأدمن
+Practical Sheets=الشيتات العملية
+Clinical Obstetric & Gynecological Nursing=تمريض النساء والتوليد الإكلينيكي
+Student data=بيانات الطالب
+Choose sheet=اختر الشيت
+Next=التالي
+Back=رجوع
+Antenatal Sheet=شيت الحمل (Antenatal)
+Labor Sheet=شيت الولادة (Labor)
+Postpartum Sheet=شيت النفاس (Postpartum)
+Group (capital letter + number, e.g. A1)=المجموعة (حرف كابيتال + رقم، مثال A1)
+Enter the full case scenario with all details (English only).=اكتب سيناريو الحالة كاملاً بكل التفاصيل (بالإنجليزية فقط).
+OK=موافق
+Nursing care plan=خطة التمريض
+Health education=التثقيف الصحي
+Nursing diagnosis=التشخيص التمريضي
+Goal=الهدف
+Interventions=التدخلات
++ Add problem=+ إضافة مشكلة
+Submit=تسليم
+Result=النتيجة
+Finish=إنهاء
+Partograph (5 marks)=البارتوجراف (5 درجات)
+Open Partograph=افتح البارتوجراف
+Tools=الأدوات
+Undo=تراجع
+Redo=إعادة
+Clear=مسح
+Done=تم
+Warning!=تنبيه!
+Go back=رجوع للإجابة
+OK, submit anyway=موافق، سلّم رغم ذلك
+History & examination=التاريخ المرضي والفحص
+Partograph=البارتوجراف
+Finalizing your grading...=جاري إنهاء التصحيح...
+Admin login=تسجيل دخول الأدمن
+Email=البريد الإلكتروني
+Password=كلمة المرور
+Login=دخول
+Enter name, group and choose a sheet=أدخل الاسم والمجموعة واختر الشيت
+This sheet is not available now=هذا الشيت غير متاح حالياً
+Choose section=اختر القسم
+Female students=الطالبات
+Male students=الطلاب الذكور
+All sheets=كل الأوراق
+Agreed=متفق عليها
+Needs your review=تحتاج مراجعتك
+Approved=معتمدة
+All=الكل
+Group=المجموعة
+Name=الاسم
+Sheet=الشيت
+Review=مراجعة
+Approve=اعتماد
+Logout=تسجيل خروج
+Refresh from cloud=تحديث من السحابة
+Final score=الدرجة النهائية
+Settings (sheets, model answers, logo)=الإعدادات (الشيتات، الإجابة النموذجية، الشعار)
+Female students (AI grading)=👩 الطالبات (تصحيح ذكي)
+Male students (internal model)=👨 الطلاب الذكور (نموذج داخلي)
+Model answer=الإجابة النموذجية
+Sheets saved for students=تم حفظ الشيتات المفعّلة للطلاب`.split('\n').map(l=>l.split('='));
+const E2A={},A2E={};P.forEach(([e,a])=>{E2A[e]=a;A2E[a.replace(/^[^\u0600-\u06FFA-Za-z]+/,'').replace(/^👩 |^👨 /,'')]=e;A2E[a]=e});
+const tr=s=>{if(s==null)return s;const t=s.trim();if(!t)return s;const M=LANG=='ar'?E2A:A2E;let r=M[t];if(r==null){const m=t.match(/^(.*?)(\s*\(\d+\))$/);if(m&&M[m[1]]!=null)r=M[m[1]]+m[2]}if(r==null){r=LANG=='ar'?t.replace('(not available)','(غير متاح)'):t.replace('(غير متاح)','(not available)');if(r==t)return s}return s.replace(t,r)};
+const A=e=>{['placeholder','title'].forEach(k=>{const v=e.getAttribute&&e.getAttribute(k);if(v){const r=tr(v);if(r!==v)e.setAttribute(k,r)}});if(e.classList&&e.classList.contains('ad'))e.dir=LANG=='ar'?'rtl':'ltr'};
+function X(n){if(!n)return;if(n.nodeType==3){const p=n.parentNode;if(p&&!/SCRIPT|STYLE|TEXTAREA/.test(p.nodeName)){const v=tr(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v}return}if(n.nodeType!=1)return;const w=document.createTreeWalker(n,5),L=[];let c;while(c=w.nextNode())L.push(c);L.forEach(c=>c.nodeType==3?X(c):A(c));A(n)}
+document.body.insertAdjacentHTML('beforeend','<div id="v3b"><button id="v3t"></button><button id="v3l"></button></div>');
+function apply(){root.dataset.theme=TH;root.lang=LANG;root.dir=LANG=='ar'?'rtl':'ltr';X(document.body);g('v3t').textContent=TH=='dark'?'☀️':'🌙';g('v3l').textContent=LANG=='ar'?'EN':'عربي'}
+g('v3t').onclick=()=>{TH=TH=='dark'?'light':'dark';localStorage.setItem('theme',TH);apply()};
+g('v3l').onclick=()=>{LANG=LANG=='ar'?'en':'ar';localStorage.setItem('lang',LANG);apply()};
+new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(X))).observe(document.body,{childList:true,subtree:true});
+const _al=window.alert;window.alert=m=>_al(tr(String(m)));
+apply();
+/* toast */
+function toast(m,bad){const o=g('v3toast');o&&o.remove();document.body.insertAdjacentHTML('beforeend',`<div id="v3toast" style="background:${bad?'#b45309':'#16a34a'}">${m}</div>`);setTimeout(()=>{const o=g('v3toast');o&&o.remove()},bad?9000:2500)}
+/* active sheets: shared through Supabase settings table (or ?sheets=ant,lab in the link) */
+async function loadActive(){try{if(typeof sb!='undefined'&&sb){const{data,error}=await sb.from('settings').select('data').eq('id','active').maybeSingle();if(!error&&data&&data.data){cfg.active=Object.assign({ant:0,lab:0,post:0},data.data);SV('cfg',cfg);return}}}catch(e){}
+const q=new URLSearchParams(location.search).get('sheets');if(q){const a=q.split(',');cfg.active={ant:+a.includes('ant'),lab:+a.includes('lab'),post:+a.includes('post')};SV('cfg',cfg)}}
+async function saveActive(){if(typeof sb=='undefined'||!sb)return toast('Cloud is not configured',1);const{error}=await sb.from('settings').upsert({id:'active',data:cfg.active});toast(error?'⚠ تعذّر حفظ الشيتات المفعّلة للطلاب: '+error.message+' — أنشئ جدول settings (SQL في الرد)':'✔ '+tr('Sheets saved for students'),!!error)}
+document.addEventListener('change',e=>{const t=e.target;if(t.type=='checkbox'&&/cfg\.active/.test(t.getAttribute('onchange')||''))setTimeout(saveActive,60)});
+const _reg=reg;reg=async function(){await loadActive();_reg()};
+const _ts9=toScn;toScn=function(){const s=document.querySelector('[name=sh]:checked');if(s&&!cfg.active[s.value])return alert('هذا الشيت غير متاح حالياً / This sheet is not available now');return _ts9.apply(this,arguments)};
+/* admin: choose females / males screen first */
+function chooser(){const n=x=>subs.filter(s=>sxOf(s)==x).length;show(`<div class="card sc"><h2>اختر القسم</h2><div class="grid"><button style="padding:30px;font-size:1.3rem" onclick="pickSx('f')">👩 الطالبات<br><small>(${n('f')})</small></button><button style="padding:30px;font-size:1.3rem" onclick="pickSx('m')">👨 الطلاب الذكور<br><small>(${n('m')})</small></button></div><button class="g" onclick="splash()">تسجيل خروج</button></div>`)}
+window.pickSx=async x=>{window._asx=x;window._af='all';await loadActive();dash('')};
+const _d9=dash;dash=function(gr,f){if(!window._chosen){window._chosen=1;return chooser()}return _d9.apply(this,arguments)};
+const _a9=adm;adm=function(){window._chosen=0;_a9()};
+/* male students: 15+ accepted health-education points per category */
+const GH=`Report danger signs promptly|danger,report,warning,sign,emergency,hospital,bleeding,headache
+Follow-up visits and medical advice|follow,visit,appointment,doctor,physician,advice,schedule
+Personal and perineal hygiene|hygiene,clean,wash,bath,perineal,hand
+Balanced diet and fluids|diet,food,fluid,water,protein,fruit,vegetable,nutrition
+Adequate rest and sleep|rest,sleep,relax,nap,position
+Light exercise and walking|walk,exercise,activity,ambulat,move
+Take medications as prescribed|medication,drug,medicine,prescribed,iron,vitamin,oxytocin
+Emotional support and family involvement|support,family,husband,partner,companion,reassure,emotional
+Avoid smoking, alcohol and self-medication|avoid,smok,alcohol,self,caffeine
+Monitor vital signs and condition|monitor,vital,observe,check,measure,assess
+Comfort measures and positioning|comfort,position,massage,pillow,lateral
+Breastfeeding and newborn care|breastfeed,newborn,baby,bond,skin
+Understand the process and ask questions|explain,understand,educat,teach,inform,knowledge
+Prevent infection|infection,aseptic,sterile,clean,fever
+Bladder and bowel care|bladder,void,urinat,bowel,stool,constipation`.split('\n').map(l=>{const[t,k]=l.split('|');return{text:t,keywords:k.split(',')}});
+const _mk=maleKey;maleKey=function(J){const K=_mk(J);K.he.forEach(e=>{e.points=(e.points||[]).concat(GH)});return K};
+
+/* speed: no model-list round trip, fast model first, no long waits */
+gdisc=function(){const c=[];try{const m=sessionStorage.getItem('gm');m&&c.push(m)}catch(e){}c.push('gemini-2.5-flash','gemini-flash-latest','gemini-2.5-flash-lite','gemini-3-flash-preview');return Promise.resolve({cands:[...new Set(c)],lim:{},err:'',bad:''})};
+})();
+</script>
+</body></html>
