@@ -353,7 +353,7 @@ he:[H('First stage',['Walk and change positions; left lateral|ambulat,walk,posit
 H('Second stage',['Push with contractions|push,bearing','Lithotomy or squatting position|lithotomy,position,squat','Breathing; hold breath while pushing|breath,hold','Perineal support; episiotomy or tear care|perine,episiotomy,tear','Pant when baby head crowns|crown,pant,head,fetal','Rest between contractions|rest,between']),
 H('Third stage',['Placenta delivery with cord traction|placenta,cord,traction','Oxytocin to contract uterus|oxytocin,uterine,contract','Watch bleeding and blood loss|bleed,blood,loss,hemorrhage','Fundal massage|massage,fundal,fundus','Monitor vital signs|vital,monitor','Check placenta and membranes complete|placenta,membrane,complete']),
 H('Fourth stage',['Skin-to-skin and breastfeeding|bond,skin,breastfe','Vitals every 15 min in first hour|vital,monitor,observe','Check fundus and massage|uterus,fundus,massage','Check bleeding and pad, lochia|bleed,pad,lochia','Perineal hygiene and rest|perine,hygiene,rest','Void within 6 hours|void,urinat,bladder'])],
-partograph:[{hour:1,cervix:3,descent:4,fhr:145,pulse:82},{hour:3,cervix:4,contractions:3},{hour:5,cervix:6,descent:2,fhr:138,contractions:4},{hour:7,cervix:8,descent:1},{hour:8,cervix:10,descent:0}],
+partograph:[{hour:1,cervix:3,descent:4,fhr:145,pulse:82,liquor:'I'},{hour:3,cervix:4,contractions:3,liquor:'C'},{hour:5,cervix:6,descent:2,fhr:138,contractions:4,drugs:'Ringer lactate IV 125 ml/hr',drug_kw:['ringer','lactate','ringers']},{hour:7,cervix:8,descent:1,liquor:'C'},{hour:8,cervix:10,descent:0}],
 unsafe:['fundal pressure']},
 post:{answers:{'Mother name':'Mariam','Age':'28','Marital condition':'Married','Diagnosis':'Postpartum four weeks after emergency cesarean section with postpartum anxiety and baby blues','Gravida':'1','Para':'1','Abortion':'No','Living children':'1','Age of youngest child':'4 weeks','Normal delivery':'No','Abnormal delivery':'Yes','Cesarean section':'Yes','Prolonged labor':'Yes','Wound state':'Cesarean incision tender and red with throbbing pain on movement','Breast':'Abnormal','Activity':'Limited by incision pain','Postpartum complications':'Tender red incision, cracked nipples, low milk supply, postpartum anxiety and baby blues'},
 careplans:[
@@ -432,7 +432,7 @@ const _gheE=ghe;ghe=function(){try{HEE=heErr()}catch(e){HEE=[]}return _gheE.appl
 function errBtn(){const b=document.querySelector('#app button[onclick="splash()"]');if(!b||document.getElementById('errb'))return;b.insertAdjacentHTML('beforebegin','<button id="errb" onclick="errShow()">🔍 اعرف أخطاءك (من غير الإجابات الصحيحة)</button><div id="errp"></div>')}
 function errShow(){const p=document.getElementById('errp');if(p.innerHTML){p.innerHTML='';return}const S=SH[st.s],H=[];S.f.forEach((f,i)=>{if(f.t=='h')return;const c=FR[i];if(c!=null&&c<.99)H.push((c<.5?'❌ ':'⚠️ ')+esc(f.l)+(c<.5?' - خطأ':' - غير دقيق أو ناقص'))});
 const r=subs[subs.length-1]||{},sec=(t,a)=>'<h3 style="margin:14px 0 4px">'+t+'</h3>'+(a.length?'<ul style="margin:0;padding-inline-start:22px">'+a.map(x=>'<li>'+x+'</li>').join('')+'</ul>':'<p style="margin:0;color:#16a34a">✔ لا توجد أخطاء ظاهرة</p>');
-p.innerHTML='<div dir="rtl" style="text-align:right;border:1px solid var(--b);border-radius:12px;padding:12px;margin:10px 0;line-height:1.8"><b>أخطاؤك في الشيت</b> <small>(لن تظهر الإجابات الصحيحة، راجع الخانات دي بنفسك)</small>'+sec('① البيانات والفحص (History &amp; examination)',H)+(st.s=='lab'&&r.pg!=null&&r.pg<5?sec('② البارتوجراف',['راجع رسم البارتوجراف: الدرجة '+r.pg+' من 5 (نقاط عنق الرحم، نزول الرأس، نبض الجنين، التقلصات)']):'')+sec('③ خطة التمريض (Nursing care plan)',CPE.map(esc))+sec('④ التثقيف الصحي (Health education)',HEE.map(x=>esc(x)+' - ناقص، أضف نقاطاً أكثر ودقة'))+'<p style="margin-top:12px"><small>الدرجة مؤقتة، والمدرس يعتمد الدرجة النهائية.</small></p></div>'}
+p.innerHTML='<div dir="rtl" style="text-align:right;border:1px solid var(--b);border-radius:12px;padding:12px;margin:10px 0;line-height:1.8"><b>أخطاؤك في الشيت</b> <small>(لن تظهر الإجابات الصحيحة، راجع الخانات دي بنفسك)</small>'+sec('① البيانات والفحص (History &amp; examination)',H)+(st.s=='lab'&&r.pg!=null&&r.pg<5?sec('② البارتوجراف',(window.PGE&&window.PGE.length?window.PGE.slice(0,14):['راجع رسم البارتوجراف: الدرجة '+r.pg+' من 5 (نقاط عنق الرحم، نزول الرأس، نبض الجنين، التقلصات)'])):'')+sec('③ خطة التمريض (Nursing care plan)',CPE.map(esc))+sec('④ التثقيف الصحي (Health education)',HEE.map(x=>esc(x)+' - ناقص، أضف نقاطاً أكثر ودقة'))+'<p style="margin-top:12px"><small>الدرجة مؤقتة، والمدرس يعتمد الدرجة النهائية.</small></p></div>'}
 const _fin5=fin;fin=async function(){const r=await _fin5.apply(this,arguments);errBtn();return r};
 
 /* ===== Male students: internal model-answer grading (no smart assistant) ===== */
@@ -608,6 +608,69 @@ const _mk=maleKey;maleKey=function(J){const K=_mk(J);K.he.forEach(e=>{e.points=(
 
 /* speed: no model-list round trip, fast model first, no long waits */
 gdisc=function(){const c=[];try{const m=sessionStorage.getItem('gm');m&&c.push(m)}catch(e){}c.push('gemini-2.5-flash','gemini-flash-latest','gemini-2.5-flash-lite','gemini-3-flash-preview');return Promise.resolve({cands:[...new Set(c)],lim:{},err:'',bad:''})};
+
+/* male students: skip scenario entry, go straight to the questions */
+const _ts10=toScn;toScn=function(){const r=_ts10.apply(this,arguments);const e=document.querySelector('#scn');
+if(window._sx=='m'&&e){const R=cfg.rub&&cfg.rub[st.s];if(!R||!R.ok||!R.json||!R.scn||R.scn.length<60){alert('هذا الشيت غير مجهز (السيناريو/الإجابة النموذجية)، تواصل مع المدرس');return reg()}st.sx='m';e.value=R.scn;return toSheet()}return r};
+/* ===== Partograph: liquor, moulding, drugs graded + admin PDF "error / correction" pages ===== */
+const LQN={I:'Intact',C:'Clear',M:'Meconium',B:'Blood-stained',A:'Absent'},MON={'0':'0','1':'+','2':'++','3':'+++'};
+function pgItems(P,M,T){const o=[],g=(ty,c)=>M.find(m=>m.t==ty&&m.c==c),tk=(r,c)=>T[r+'_'+c];
+P.forEach(e=>{const c=e.hour-1,h=e.hour;
+[['X','cervix',1,1,'عنق الرحم (X)'],['O','descent',1,.5,'نزول الرأس (O)'],['F','fhr',10,1,'نبض الجنين'],['P','pulse',10,.3,'نبض الأم']].forEach(([ty,k,tol,w,lb])=>{const v=e[k];if(v==null)return;const m=g(ty,c),ok=!!m&&Math.abs(m.v-v)<=tol;o.push({h,lb,w,exp:String(v),got:m?String(m.v):'',ok,p:ok?1:m?.3:0})});
+if(e.contractions!=null){const k=M.filter(m=>m.t[0]=='C'&&m.c==c),mx=k.length?Math.max(...k.map(m=>m.v)):null,ok=mx==e.contractions;o.push({h,lb:'الانقباضات',w:.7,exp:e.contractions+' / 10 min',got:mx==null?'':String(mx),ok,p:ok?1:k.length?.3:0})}
+if(e.liquor){const m=g('LQ',c),ok=!!m&&m.v==e.liquor;o.push({h,lb:'السائل الأمنيوسي (Liquor)',w:.5,exp:LQN[e.liquor]||e.liquor,got:m?(LQN[m.v]||m.v):'',ok,p:ok?1:m?.3:0})}
+if(e.moulding!=null){const m=g('MO',c),ok=!!m&&String(m.v)==String(e.moulding);o.push({h,lb:'التشكل (Moulding)',w:.5,exp:MON[e.moulding]||String(e.moulding),got:m?(MON[m.v]||m.v):'',ok,p:ok?1:m?.3:0})}
+if(e.drugs){const kw=e.drug_kw&&e.drug_kw.length?e.drug_kw:words(e.drugs),txt=[-1,0,1].map(d=>['drg','oxy','drp'].map(r=>tk(r,c+d)).filter(Boolean).join(' ')).join(' ').trim(),ok=!!txt&&hit(txt,kw)>0;o.push({h,lb:'الأدوية والمحاليل (Drugs & IV)',w:.7,exp:e.drugs,got:txt,ok,p:ok?1:txt?.3:0})}
+});return o}
+gpgO=function(P,h){const it=pgItems(P,marks,tx);let t=0,mx=0;it.forEach(x=>{mx+=x.w;t+=x.w*x.p});
+window.PGE=it.filter(x=>!x.ok).map(x=>'❌ الساعة '+x.h+': '+x.lb+(x.got?' - القيمة المكتوبة غير صحيحة':' - لم يتم رسمه/كتابته'));
+const ph=(h||[...document.querySelectorAll('.phi')].map(i=>i.value)).filter(x=>String(x).trim()).length;
+return +Math.min(5,(mx?4.5*t/mx:0)+.5*Math.min(1,(ph/7+Math.min(1,Object.keys(tx).length/6))/2)).toFixed(2)};
+const LABPG=[{hour:1,cervix:3,descent:4,fhr:145,pulse:82,liquor:'I'},{hour:3,cervix:4,contractions:3,liquor:'C'},{hour:5,cervix:6,descent:2,fhr:138,contractions:4,drugs:'Ringer lactate IV 125 ml/hr',drug_kw:['ringer','lactate','ringers']},{hour:7,cervix:8,descent:1,liquor:'C'},{hour:8,cervix:10,descent:0}];
+function migPg(){try{const r=cfg.rub&&cfg.rub.lab,p=r&&r.json&&r.json.partograph;if(p&&!JSON.stringify(p).includes('liquor')&&JSON.stringify(p).includes('"cervix":3,"descent":4,"fhr":145')){r.json.partograph=LABPG;SV('cfg',cfg)}}catch(e){}}
+migPg();
+function errPages(s,im){const A=s.ans||{f:[],cp:[],he:[]},K0=keyOfSub(s);if(!K0)return[];
+const K=sxOf(s)=='m'?maleKey(K0):K0,P=[];let c,g,y;
+const np=()=>{c=document.createElement('canvas');c.width=794;c.height=1123;g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,794,1123);y=50;P.push(c)};np();
+const T=(t,x,f,k,al,d)=>{g.font=f;g.fillStyle=k;g.textAlign=al;g.direction=d;g.fillText(t,x,y)};
+T('تقرير الأخطاء والتصحيح (للأدمن)',749,'bold 20px Arial','#0f6e8c','right','rtl');y+=26;
+T(s.n+'  -  Group '+s.g+'  -  '+s.s,749,'14px Arial','#000','right','rtl');y+=20;
+T('الدرجة: '+s.tot+' / '+s.max+'   (التصحيح حسب السيناريو والإجابة النموذجية)',749,'bold 13px Arial','#333','right','rtl');y+=22;
+const rows=(title,L)=>{if(y>1000)np();g.fillStyle='#0f6e8c';g.fillRect(45,y-15,704,22);T(title+'  ('+L.length+')',745,'bold 14px Arial','#fff','right','rtl');y+=24;
+if(!L.length){T('✔ لا توجد أخطاء في هذا الجزء',745,'13px Arial','#166534','right','rtl');y+=26;return}
+T('التصحيح الصحيح حسب السيناريو',50,'bold 12px Arial','#166534','left','ltr');T('الخطأ (كتابة الطالب)',745,'bold 12px Arial','#b91c1c','right','rtl');y+=18;
+L.forEach(([e,f])=>{g.font='12px Arial';const a=wrap(g,e,335),b=wrap(g,f,335),n=Math.max(a.length,b.length),hh=n*17+8;if(y+hh>1085){np()}
+g.fillStyle='#fff5f5';g.fillRect(400,y-13,349,hh);g.fillStyle='#f0fdf4';g.fillRect(45,y-13,349,hh);g.strokeStyle='#ddd';g.strokeRect(45,y-13,704,hh);
+a.forEach((l,i)=>{g.font='12px Arial';g.fillStyle='#b91c1c';g.textAlign='right';g.direction='rtl';g.fillText(l,745,y+i*17)});
+b.forEach((l,i)=>{g.font='12px Arial';g.fillStyle='#166534';g.textAlign='left';g.direction='ltr';g.fillText(l,50,y+i*17)});y+=hh});y+=14};
+const ans=K.answers||{},H=[];
+A.f.forEach(f=>{if(f.h||!f.l)return;const x=ans[f.l];if(x==null||/not mentioned|n\/a/i.test(String(x)))return;const v=(f.v||'').trim()==='-'?'':(f.v||'').trim();let ok;
+if(/^\d{4}-\d{2}-\d{2}$/.test(String(x))){const dm=v.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/),d=dm?pd(dm[3]+'-'+dm[2].padStart(2,'0')+'-'+dm[1].padStart(2,'0')):pd(v),b=pd(x);ok=d!=null&&b!=null&&Math.abs(d-b)<=(/E\.D\.D/.test(f.l)?7:2)*864e5}
+else ok=!!v&&cmpFact(v,String(x))>=.99;
+if(!ok&&f.v==='-'&&/^(no|not|none|absent|negative|normal)/i.test(String(x)))ok=true;
+if(!ok)H.push([f.l+': '+(v||'(لم يُجب)'),f.l+': '+x])});
+rows('① بيانات الشيت (History & examination)',H);
+if(A.pg&&K.partograph)rows('② البارتوجراف',pgItems(K.partograph,A.pg.m||[],A.pg.t||{}).filter(x=>!x.ok).map(x=>['الساعة '+x.h+' - '+x.lb+': '+(x.got||'(لم يُرسم / لم يُكتب)'),'Hour '+x.h+' - '+x.lb+': '+x.exp]));
+const M=K.careplans||[],R=A.cp||[],used=new Set(),rk=[],C=[],F=/related to|r\/t|due to|secondary to|caused by/i,EB=/evidenced by|as evidenced|e\/b|manifested by|characterized by/i;
+if(R.length<3)C.push(['عدد المشاكل المكتوبة '+R.length+' فقط','Write at least 3 nursing problems in priority order']);
+R.forEach(([d='',gl='',iv=''],n)=>{let m=null,b=0;M.forEach(x=>{const kw=(x.keywords||[]).concat([String(x.problem||'').split(/ related to /i)[0]]).concat((x.alt_diagnoses||[]).map(a=>String(a).split(/ related to /i)[0])),sc=hit(d,kw)*2+hit(gl,kw)+hit(iv,kw)*.5;if(sc>b){b=sc;m=x}});
+const q='مشكلة '+(n+1)+' ('+(d.slice(0,50)||'-')+'): ';
+if(b<1){C.push([q+'غير مرتبطة بحالة السيدة في السيناريو','Relevant problem: '+((K0.careplans||[])[0]||{}).problem]);return}
+used.add(m.problem);rk.push(+m.priority||+m.rank||0);
+if(!F.test(d)||!EB.test(d))C.push([q+'التشخيص ينقصه '+(!F.test(d)?'related to ':'')+(!EB.test(d)?'as evidenced by':''),'Correct diagnosis: '+m.problem]);
+if(gl.length<=10||!/within|after|by the end|hour|minute|day|during|before/i.test(gl))C.push([q+'الهدف غير قابل للقياس أو بدون مدة زمنية','Goal: '+(m.goal||'')]);
+const L=iv.split(/\n|\d\s*[\.\)\-]\s+/).map(x=>x.trim()).filter(x=>x.length>3),I=m.interventions||[],miss=I.filter(x=>!hit(iv,x.keywords));
+if(L.length<3)C.push([q+'التدخلات قليلة (أقل من 3)','Interventions: '+I.slice(0,5).map(x=>x.text).join('; ')]);
+else if(!/assess|monitor|check|measure|observe|evaluat|vital|auscult/i.test(L[0]))C.push([q+'التدخلات لازم تبدأ بالتقييم (assessment)','Start with: '+((I.find(x=>/assess|monitor|check|measure|observe|evaluat/i.test(x.text))||I[0]||{}).text||'')]);
+if(I.length&&I.length-miss.length<Math.min(3,I.length))C.push([q+'تدخلات أساسية ناقصة','Add: '+miss.slice(0,4).map(x=>x.text).join('; ')]);
+if(hit(iv,m.unsafe)>0)C.push([q+'يوجد تدخل غير آمن','Avoid: '+(m.unsafe||[]).join(', ')])});
+for(let k=1;k<rk.length;k++)if(rk[k]<rk[k-1]){C.push(['ترتيب أولويات المشاكل غير صحيح','Priority order: '+(K0.careplans||[]).slice().sort((a,b)=>(+a.priority||+a.rank||0)-(+b.priority||+b.rank||0)).slice(0,5).map((x,i)=>(i+1)+') '+String(x.problem).split(/ related to /i)[0]).join('  ')]);break}
+(K0.careplans||[]).filter(x=>(+x.priority||+x.rank||9)<=2&&!used.has(x.problem)).slice(0,2).forEach(x=>C.push(['مشكلة أساسية لم تُذكر','Missing: '+x.problem+' | Goal: '+(x.goal||'')]));
+rows('③ خطة التمريض (Nursing care plan)',C);
+const E=[];(K.he||[]).forEach((e,i)=>{const v=((A.he||[])[i]||[])[1]||'',pts=e.points||[],hs=pts.filter(p=>hit(v,p.keywords)>0),need=Math.min(3,pts.length);if(hs.length<need)E.push([(e.category||('قسم '+(i+1)))+': '+(v.trim()?'غطّيت '+hs.length+' من 3 نقاط مطلوبة':'(لم يكتب شيئاً)'),'Add: '+pts.filter(p=>!hit(v,p.keywords)).slice(0,6).map(p=>p.text).join('; ')])});
+rows('④ التثقيف الصحي (Health education)',E);
+g.textAlign='left';g.direction='ltr';return P}
+const _pages=pages;pages=function(s,im){const B=_pages(s,im);try{return errPages(s,im).concat(B)}catch(e){console.error(e);return B}};
 })();
 </script>
 </body></html>
