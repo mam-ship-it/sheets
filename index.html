@@ -862,7 +862,7 @@ dash=function(){const r=_dNG.apply(this,arguments);try{mount()}catch(e){console.
 </script>
 <script>
 /* ===== One attempt per student per sheet (enforced on the server, Supabase table "attempts") =====
-   Student: entering a sheet consumes the attempt. A second entry shows "go back to Dr. Mohamed Mahmoud".
+   Student: submitting a sheet consumes the attempt (entering does not). A second entry shows "go back to Dr. Mohamed Mahmoud".
    Admin: dashboard panel lists students waiting for a second attempt, with an "allow" button. */
 (function(){
 const SHN={ant:'شيت الحمل (Antenatal)',lab:'شيت الولادة (Labor)',post:'شيت النفاس (Postpartum)'},SHS={ant:'Ante',lab:'Labour',post:'Post'};
@@ -879,8 +879,22 @@ async function claim(U,k){
   }catch(e){console.warn('attempt check failed, falling back to this device only',e)}
   const L=LS('ngAtt',{}),key=U.id+'|'+k;
   if(L[key])return{ok:false,local:1};
-  L[key]=Date.now();SV('ngAtt',L);return{ok:true,local:1};
+  return{ok:true,local:1};   /* entering does NOT consume the attempt; it is consumed on submit (markDone) */
 }
+/* attempt is consumed only when the student submits the sheet */
+async function markDone(U,k,rid){
+  if(!U||!k)return;
+  const L=LS('ngAtt',{});L[U.id+'|'+k]=Date.now();SV('ngAtt',L);
+  const job={id:String(U.id),n:U.n,g:String(U.g),k:k,rid:rid||null};
+  try{
+    if(!hasSb())throw new Error('no cloud');
+    const{data,error}=await sb.rpc('finish_attempt',{p_id:job.id,p_name:job.n,p_grp:job.g,p_sheet:job.k,p_rid:job.rid});
+    if(error)throw error;
+  }catch(e){console.warn('finish_attempt failed, queued for retry',e);const q=LS('ngFinQ',[]);q.push(job);SV('ngFinQ',q)}
+}
+(async()=>{const q=LS('ngFinQ',[]);if(!q.length||!hasSb())return;const left=[];
+  for(const j of q){try{const{error}=await sb.rpc('finish_attempt',{p_id:j.id,p_name:j.n,p_grp:j.g,p_sheet:j.k,p_rid:j.rid});if(error)throw error}catch(e){left.push(j)}}
+  SV('ngFinQ',left)})();
 function blocked(U,k){
   show(`<div class="card sc" dir="rtl"><h2>⛔ لا يمكنك فتح هذا الشيت</h2>
 <p><b>${esc(U.n)}</b></p>
@@ -895,14 +909,21 @@ toScn=function(){
   if(!U||!r||!cfg.active[r.value])return _tsA.apply(t,a);          /* let the original show its own alerts */
   const key=U.id+'|'+r.value;
   if(window._ngOK===key)return _tsA.apply(t,a);                      /* same session, already counted */
-  claim(U,r.value).then(x=>{if(x.ok){window._ngOK=key;_tsA.apply(t,a)}else blocked(U,r.value)});
+  claim(U,r.value).then(x=>{if(x.ok){window._ngOK=key;window._ngU={U:{id:U.id,n:U.n,g:U.g},k:r.value};_tsA.apply(t,a)}else blocked(U,r.value)});
 };
 const _finA=fin;
-fin=function(){window._ngOK=null;return _finA.apply(this,arguments)};   /* a finished paper ends the attempt */
+fin=function(){
+  const E=window._ngU||{U:window._stu,k:(typeof st!='undefined'&&st)?st.s:null};
+  window._ngOK=null;
+  const res=_finA.apply(this,arguments);   /* submits the paper (saves the submission) */
+  try{const rec=subs[subs.length-1];markDone(E.U,E.k,rec&&rec.rid)}catch(e){console.warn('markDone',e)}
+  window._ngU=null;
+  return res;
+};   /* the attempt is counted here, on submit only */
 
 /* ---- admin side ---- */
 const AS=window._atp=window._atp||{f:'pending',q:'',rows:[]};
-const HEAD='<h2>🔁 المحاولات (محاولة واحدة لكل شيت)</h2><p class="mu">كل طالب له محاولة واحدة في كل شيت. لو دخل مرة ثانية بتظهر له رسالة إنه لازم يرجع للدكتور محمد محمود، وبيظهر هنا عشان تسمح له بمحاولة ثانية لو احتاج الأمر.</p>';
+const HEAD='<h2>🔁 المحاولات (محاولة واحدة لكل شيت)</h2><p class="mu">كل طالب له محاولة واحدة في كل شيت، وبتتحسب لما يسلّم الشيت بس (مش لما يسجّل دخول أو يفتح الشيت). لو سلّم ورجع دخل تاني بتظهر له رسالة إنه لازم يرجع للدكتور محمد محمود، وبيظهر هنا عشان تسمح له بمحاولة ثانية لو احتاج الأمر.</p>';
 function table(){
   const el=document.getElementById('atpt');if(!el)return;
   const q=String(AS.q||'').trim().toLowerCase(),isP=r=>r.used>=r.allowed&&r.blocked>0;
