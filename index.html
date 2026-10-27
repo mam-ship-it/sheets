@@ -900,6 +900,80 @@ dash=function(){const r=_dA.apply(this,arguments);try{mount()}catch(e){console.w
 </script>
 
 <script>
+/* ===== Master switch: stop receiving sheets (all students) =====
+   Admin: a button in the dashboard closes / reopens sheet entry for everybody, with an editable message.
+   Student: pressing Next (entering a sheet) while closed shows the message and does not open the sheet.
+   Stored in Supabase table "settings", row id = 'lock' (same table as the active-sheets row). */
+(function(){
+const DEF_MSG='تم إيقاف استلام الشيتات حالياً.\nلا يمكن الدخول للشيت الآن، برجاء الرجوع للدكتور.';
+let LK={closed:false,msg:''};
+async function lkFetch(){
+  if(typeof sb=='undefined'||!sb)return null;
+  const{data,error}=await sb.from('settings').select('data').eq('id','lock').maybeSingle();
+  if(error)return null;
+  return (data&&data.data)?{closed:!!data.data.closed,msg:String(data.data.msg||'')}:{closed:false,msg:''};
+}
+function lkModal(msg){
+  const o=document.getElementById('lkov');o&&o.remove();
+  const d=document.createElement('div');d.id='lkov';
+  d.style.cssText='position:fixed;inset:0;z-index:99999;background:#000b;display:flex;align-items:center;justify-content:center;padding:16px';
+  const esc2=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  d.innerHTML='<div dir="rtl" style="background:#fff;color:#111;max-width:420px;width:100%;border-radius:16px;padding:26px 22px;text-align:center;box-shadow:0 10px 40px #0008;border-top:6px solid #dc2626">'
+   +'<div style="font-size:48px;line-height:1">⛔</div>'
+   +'<h2 style="margin:10px 0 8px;color:#b91c1c">استلام الشيتات متوقف</h2>'
+   +'<p style="white-space:pre-line;line-height:1.9;font-size:16px;margin:0 0 18px">'+esc2(msg||DEF_MSG)+'</p>'
+   +'<button id="lkok" style="width:100%;padding:12px;font-size:16px">حسناً</button></div>';
+  document.body.appendChild(d);
+  document.getElementById('lkok').onclick=()=>d.remove();
+}
+/* student side */
+const _idN=idNext;
+idNext=async function(){
+  let L=null;try{L=await lkFetch()}catch(e){}
+  if(L&&L.closed){
+    const b=document.getElementById('sgo');if(b)b.disabled=false;
+    return lkModal(L.msg);
+  }
+  return _idN.apply(this,arguments);
+};
+/* admin side */
+function lkRender(){
+  const p=document.getElementById('lkp');if(!p)return;
+  const c=LK.closed;
+  p.innerHTML='<h2>⛔ إيقاف استلام الشيتات</h2>'
+   +'<p class="mu">لما توقف الاستلام، أي طالب يضغط Next لدخول الشيت بتظهر له رسالة إن الاستلام متوقف ومش بيدخل. تقدر تفتحه تاني في أي وقت.</p>'
+   +'<div style="padding:10px 14px;border-radius:10px;margin:8px 0;font-weight:700;background:'+(c?'#fee2e2':'#dcfce7')+';color:'+(c?'#991b1b':'#14532d')+'">'
+   +(c?'⛔ الاستلام متوقف حالياً لجميع الطلاب':'✔ الاستلام مفتوح لجميع الطلاب')+'</div>'
+   +'<label>رسالة تظهر للطالب (اختياري)</label>'
+   +'<textarea id="lkmsg" dir="rtl" style="min-height:70px" placeholder="'+DEF_MSG.replace(/\n/g,' ')+'">'+String(LK.msg||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</textarea>'
+   +'<button id="lkbtn" style="background:'+(c?'#16a34a':'#dc2626')+'">'+(c?'▶ فتح استلام الشيتات':'⏹ إيقاف استلام الشيتات')+'</button> '
+   +'<button class="g" id="lksave">حفظ الرسالة فقط</button>';
+  document.getElementById('lkbtn').onclick=()=>lkSet(!LK.closed);
+  document.getElementById('lksave').onclick=()=>lkSet(LK.closed);
+}
+async function lkSet(closed){
+  if(typeof sb=='undefined'||!sb)return alert('Supabase is not configured');
+  const msg=(document.getElementById('lkmsg')||{value:''}).value.trim();
+  const b=document.getElementById('lkbtn'),s2=document.getElementById('lksave');b&&(b.disabled=true);s2&&(s2.disabled=true);
+  const{error}=await sb.from('settings').upsert({id:'lock',data:{closed:!!closed,msg:msg}});
+  if(error){b&&(b.disabled=false);s2&&(s2.disabled=false);return toast('⚠ تعذّر الحفظ: '+error.message+' — تأكد إنك مسجّل دخول الأدمن من السحابة',1)}
+  LK={closed:!!closed,msg:msg};lkRender();
+  toast(closed?'⛔ تم إيقاف استلام الشيتات':'✔ تم فتح استلام الشيتات');
+}
+function lkMount(){
+  const a=document.querySelector('#app .ad');
+  if(!a||document.getElementById('lkp'))return;
+  const d=document.createElement('div');d.className='p';d.id='lkp';
+  d.innerHTML='<p class="mu">⏳ جارٍ التحميل...</p>';
+  a.insertBefore(d,a.firstChild);
+  lkFetch().then(L=>{if(L)LK=L;lkRender()}).catch(()=>lkRender());
+}
+const _dLK=dash;
+dash=function(){const r=_dLK.apply(this,arguments);try{lkMount()}catch(e){console.warn('lock panel',e)}return r};
+})();
+</script>
+
+<script>
 /* ===== Capacity layer (1000+ students) =====
    admin: paged loading from the server, similarity index, lazy full-paper download, partial sync
    student: draft auto-save (male students) ===== */
@@ -1088,6 +1162,59 @@ function draftRestore(){var k=draftKey();if(!k||!document.getElementById('cpb'))
   setInterval(draftSave,8000);addEventListener('pagehide',draftSave);
   document.addEventListener('visibilitychange',function(){if(document.hidden)draftSave()});
   addEventListener('beforeunload',function(e){if(draftKey()&&document.getElementById('cpb')&&!window._finBusy){draftSave();e.preventDefault();e.returnValue=''}});
+})();
+</script>
+<script>
+/* ===== Announcement ticker + countdown on the first screen (Student / My result / Admin) =====
+   To change the deadline or the text edit the 3 constants below. */
+(function(){
+const DEADLINE=new Date('2026-10-29T17:00:00+03:00');          /* Thursday 29 Oct 2026, 5:00 PM Cairo time */
+const NEWS='📢 تنويه هام: آخر موعد لاستلام شيت Antenatal يوم الخميس القادم 29 أكتوبر الساعة 5 مساءً — وسيتم غلق استلام الشيتات بعد هذا الموعد ⏰';
+const ENDED='⛔ انتهى موعد استلام شيت Antenatal وتم غلق استلام الشيتات';
+if(!document.getElementById('annst')){const st=document.createElement('style');st.id='annst';st.textContent=`
+#ann{margin:0 0 14px;border-radius:16px;overflow:hidden;position:relative;background:#06121f;color:#fff;border:2px solid transparent;
+ background-image:linear-gradient(#06121fee,#06121fee),linear-gradient(90deg,#22d3ee,#a855f7,#f59e0b,#22d3ee);background-origin:border-box;background-clip:padding-box,border-box;
+ box-shadow:0 0 18px #22d3ee88,0 0 40px #a855f755;animation:annglow 2.4s ease-in-out infinite alternate}
+@keyframes annglow{from{box-shadow:0 0 12px #22d3ee66,0 0 26px #a855f733}to{box-shadow:0 0 24px #22d3eecc,0 0 56px #a855f788}}
+#ann .tkw{overflow:hidden;white-space:nowrap;direction:ltr;background:linear-gradient(90deg,#7c3aed,#0f6e8c,#7c3aed);padding:9px 0;border-bottom:1px solid #ffffff33}
+#ann .tk{display:inline-block;padding-left:100%;animation:anntk 26s linear infinite reverse;font-weight:800;font-size:16px;text-shadow:0 0 8px #fff,0 0 16px #22d3ee}
+#ann .tkw:hover .tk{animation-play-state:paused}
+@keyframes anntk{to{transform:translateX(-100%)}}
+#ann .cd{padding:12px 10px 14px;text-align:center}
+#ann .cdt{font-weight:800;font-size:15px;margin-bottom:10px;color:#fde68a;text-shadow:0 0 10px #f59e0b}
+#ann .bx{display:flex;gap:8px;justify-content:center;direction:rtl}
+#ann .b{flex:1;max-width:110px;border-radius:12px;padding:8px 4px;background:linear-gradient(160deg,#0b2236,#13324d);border:1px solid #22d3ee88;box-shadow:inset 0 0 14px #22d3ee33,0 0 12px #22d3ee44}
+#ann .n{display:block;font:800 30px/1.1 ui-monospace,Consolas,monospace;color:#67e8f9;text-shadow:0 0 10px #22d3ee,0 0 22px #22d3ee;font-variant-numeric:tabular-nums}
+#ann .l{display:block;font-size:12px;margin-top:3px;color:#cbd5e1}
+#ann .b.s .n{animation:annp 1s steps(1) infinite}
+@keyframes annp{50%{color:#fde68a;text-shadow:0 0 10px #f59e0b,0 0 22px #f59e0b}}
+#ann .end{padding:16px 10px;text-align:center;font-weight:800;font-size:17px;color:#fca5a5;text-shadow:0 0 12px #ef4444}
+@media(max-width:420px){#ann .n{font-size:24px}#ann .tk{font-size:14px}}
+`;document.head.appendChild(st)}
+const p2=n=>String(n).padStart(2,'0');
+function tick(){
+  const a=document.getElementById('ann');if(!a)return;
+  const ms=DEADLINE-Date.now();
+  if(ms<=0){if(!a.dataset.end){a.dataset.end=1;a.innerHTML='<div class="tkw"><span class="tk" dir="rtl">'+ENDED+'</span></div><div class="end">'+ENDED+'</div>'}return}
+  const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),c=s%60,v={d:d,h:p2(h),m:p2(m),s:p2(c)};
+  for(const k in v){const e=a.querySelector('[data-k='+k+']');if(e)e.textContent=v[k]}
+}
+function mount(){
+  const app=document.getElementById('app');
+  if(!app||document.getElementById('ann')||!app.querySelector('button[onclick="myRes()"]'))return;
+  const a=document.createElement('div');a.id='ann';a.dir='rtl';
+  a.innerHTML='<div class="tkw"><span class="tk" dir="rtl">'+NEWS+'</span></div>'
+   +'<div class="cd"><div class="cdt">⏳ الوقت المتبقي على غلق استلام شيت Antenatal</div><div class="bx">'
+   +'<div class="b"><span class="n" data-k="d">00</span><span class="l">يوم</span></div>'
+   +'<div class="b"><span class="n" data-k="h">00</span><span class="l">ساعة</span></div>'
+   +'<div class="b"><span class="n" data-k="m">00</span><span class="l">دقيقة</span></div>'
+   +'<div class="b s"><span class="n" data-k="s">00</span><span class="l">ثانية</span></div></div></div>';
+  app.insertBefore(a,app.firstChild);tick();
+}
+const _spl=splash;
+splash=function(){const r=_spl.apply(this,arguments);try{mount()}catch(e){console.warn('announcement',e)}return r};
+setInterval(tick,1000);
+try{mount()}catch(e){}
 })();
 </script>
 </body></html>
