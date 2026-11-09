@@ -400,13 +400,22 @@ const dc=Math.abs(a.cp-s.cp),dh=Math.abs(a.he-s.he);if(dc>TOL())R.push('فرق �
 return R.length?{k:'bad',t:'يحتاج مراجعتك ⚠',c:'#f59e0b',R}:{k:'good',t:'متفق عليه ✓',c:'#38bdf8',R}}
 function okS(i,b){const s=subs[i];(s.log=s.log||[]).push({t:new Date().toLocaleString(),f:'CP '+eff(s).cp+' / HE '+eff(s).he,to:'اعتماد',r:'اعتمده الدكتور'});s.ok=1;SV('subs',subs);cloudSync();b?dash(s.g):rev(i)}
 function okAll(g){const L=subs.map((s,i)=>i).filter(i=>subs[i].g==g&&sxOf(subs[i])==(window._asx||'f')&&chk(subs[i]).k=='good');if(!L.length)return alert('لا توجد أوراق متفق عليها للاعتماد');if(!confirm('اعتماد '+L.length+' ورقة متفق عليها بين الفلتر 1 و2؟'))return;L.forEach(i=>{const s=subs[i];(s.log=s.log||[]).push({t:new Date().toLocaleString(),f:'',to:'اعتماد جماعي',r:'متفق عليه'});s.ok=1});SV('subs',subs);cloudSync();dash(g)}
+function needFlag(s){const a=s.ai,r=[];if(!a){r.push('لم يُصحَّح بالتصحيح الذكي');return r}const d=Math.max(Math.abs(a.cp-s.cp),Math.abs(a.he-s.he));if(d>=1)r.push('اختلاف كبير ('+d.toFixed(2)+' درجة)');let sm=[];try{sm=cpy(s)||[]}catch(x){}if(sm.length)r.push('تشابه مع '+sm.slice(0,2).map(x=>x.n+' '+x.p+'%').join('، '));if(a.flags&&a.flags.length)r.push('تنبيه أمان');if(a.mism)r.push('سيناريو مختلف');return r}
+function okNeed(g){const L=subs.map((s,i)=>i).filter(i=>subs[i].g==g&&sxOf(subs[i])==(window._asx||'f')&&chk(subs[i]).k=='bad');if(!L.length)return alert('لا توجد أوراق تحتاج مراجعة في هذه المجموعة');
+const F=[],S=[];L.forEach(i=>{const r=needFlag(subs[i]);(r.length?F:S).push([i,r])});
+let m='';if(F.length){m='⚠ فيه '+F.length+' ورقة فيها اختلاف كبير أو تشابه بين الطلاب (أو تنبيه آخر)، وهي لن تُعتمد وتبقى لمراجعتك:\n\n'+F.slice(0,8).map(([i,r])=>'• '+subs[i].n+' — '+r.join('، ')).join('\n')+(F.length>8?'\n… و'+(F.length-8)+' أخرى':'')+'\n\n';
+if(!S.length){alert(m+'ولا توجد أوراق أخرى للاعتماد الجماعي. راجعها بنفسك.');return dash(g,'bad')}
+m+='هل توافق على اعتماد الـ '+S.length+' ورقة الباقية جماعياً؟\nموافق = اعتماد   |   إلغاء = أرجع أراجع بنفسي'}
+else m='سيتم اعتماد '+S.length+' ورقة تحتاج مراجعة دفعة واحدة بدرجاتها الحالية (لا اختلاف كبير ولا تشابه).\nهل أنت متأكد؟';
+if(!confirm(m))return dash(g,'bad');
+S.forEach(([i])=>{const s=subs[i],e=eff(s);(s.log=s.log||[]).push({t:new Date().toLocaleString(),f:'CP '+e.cp+' / HE '+e.he,to:'اعتماد جماعي',r:'اعتماد جماعي للأوراق التي تحتاج مراجعة (بعد استبعاد الاختلاف الكبير والتشابه)'});s.ok=1});SV('subs',subs);cloudSync();dash(g,F.length?'bad':undefined)}
 function dash(gr,f){CPC=new WeakMap();const SX=window._asx||'f',SB=subs.filter(s=>sxOf(s)==SX),gs=[...new Set(SB.map(s=>s.g))].sort(gsort);gr=gr||(SB.length?SB[SB.length-1].g:gs[0])||'';f=f||window._af||'all';window._af=f;const C={all:0,bad:0,good:0,done:0,no:0};SB.forEach(s=>{C[chk(s).k]++;C.all++});
 const L=subs.map((s,i)=>[s,i]).filter(x=>x[0].g==gr&&sxOf(x[0])==SX&&(f=='all'||chk(x[0]).k==f)).reverse(),ch=(k,t)=>`<button class="ch g ${f==k?'on':''}" onclick="dash('${gr}','${k}')">${t} (${C[k]})</button>`;
 show(`<div class="ad" dir="rtl">${TABS(SX)}<div class="p" ><h2>كيف يتم التصحيح؟ (3 فلاتر)</h2><div class="fl"><div class="fb"><b class="n">1</b><b>تصحيح بالقواعد</b><br><small>تلقائي لحظة التسليم: كلمات مفتاحية، صيغة التشخيص (related to / evidenced by)، ترتيب الأولويات.</small></div><div class="fb"><b class="n">2</b><b>التصحيح الذكي</b><br><small>يقرأ إجابة الطالب ويقارنها بالإجابة النموذجية المعتمدة، ويقبل أي إجابة صحيحة إكلينيكياً.</small></div><div class="fb"><b class="n">3</b><b>المطابقة ومراجعتك</b><br><small>لو الفلتران اتفقا (فرق ≤ ${TOL()}) وثقة التصحيح الذكي ≥ 70% ولا تنبيهات: تُعتمد. غير كده تظهر لك للمراجعة، ولا تُعتبر نهائية إلا باعتمادك.</small></div><div class="fb"><b class="n">+</b><b>فحوصات أمان إضافية</b><br><small>تصحيح ذكي ثانٍ مستقل للأوراق المشكوك فيها، فحص آلي (ورقة فاضية، تكرار، عبارات خطرة)، وكشف التشابه بين الطلاب.</small></div></div></div>
 <div class="p"><div class="st"><div class="sc2"><big>${C.all}</big>كل الأوراق</div><div class="sc2"><big style="color:#94a3b8">${C.no}</big>لم تُصحَّح بالتصحيح الذكي</div><div class="sc2"><big style="color:#38bdf8">${C.good}</big>متفق عليها</div><div class="sc2"><big style="color:#f59e0b">${C.bad}</big>تحتاج مراجعتك</div><div class="sc2"><big style="color:#22c55e">${C.done}</big>معتمدة</div></div></div>
 <div class="p"><label>المجموعة </label><select id="grsel" onchange="dash(this.value)" style="width:auto">${gs.map(g=>`<option ${g==gr?'selected':''}>${g}</option>`).join('')||'<option>لا توجد أوراق</option>'}</select> <button class="g" onclick="cloudRefresh()">تحديث من السحابة</button><br>${ch('all','الكل')}${ch('no','لم تُصحَّح')}${ch('good','متفق عليها')}${ch('bad','تحتاج مراجعة')}${ch('done','معتمدة')}
 <div style="overflow:auto;margin-top:8px"><table><tr><th>الاسم</th><th>الشيت</th><th>① قواعد<br><small>خطة / تثقيف</small></th><th>② التصحيح الذكي<br><small>خطة / تثقيف</small></th><th>③ الحالة</th><th>الدرجة النهائية</th><th></th></tr>${L.map(([s,i])=>{const e=eff(s),c=chk(s),a=s.ai;return`<tr><td>${esc(s.n)}</td><td>${s.s}</td><td>${s.cp} / ${s.he}</td><td>${a?a.cp+' / '+a.he:'—'}</td><td>${BD(c.c,c.t)}</td><td>${e.tot}/${s.max}${c.k=='done'?'':' <small>(مؤقتة)</small>'}</td><td><button onclick="rev(${i})">مراجعة</button>${c.k=='good'?`<button class="g" onclick="okS(${i},1)">اعتماد</button>`:''}<button class="g" onclick="onePdf(${i})">PDF</button></td></tr>`}).join('')||'<tr><td colspan="7">لا توجد أوراق</td></tr>'}</table></div><br>
-<button onclick="window._autoStop=0;gAll('${gr}')">شغّل الفلتر 2 (التصحيح الذكي) للمجموعة</button><button onclick="okAll('${gr}')">اعتماد كل المتفق عليه</button><button class="g" onclick="xl('${gr}')">Excel</button><button class="g" onclick="zipG('${gr}')">PDF لكل طالب (ZIP)</button><button class="g" onclick="xlAll()">Excel كل المجموعات</button><button class="g" onclick="zipAll()">ZIP كل الطلاب</button><div id="ds"></div></div>
+<button onclick="window._autoStop=0;gAll('${gr}')">شغّل الفلتر 2 (التصحيح الذكي) للمجموعة</button><button onclick="okAll('${gr}')">اعتماد كل المتفق عليه</button><button style="background:#f59e0b;color:#000" onclick="okNeed('${gr}')">اعتماد كل اللي يحتاج مراجعة (${C.bad})</button><button class="g" onclick="xl('${gr}')">Excel</button><button class="g" onclick="zipG('${gr}')">PDF لكل طالب (ZIP)</button><button class="g" onclick="xlAll()">Excel كل المجموعات</button><button class="g" onclick="zipAll()">ZIP كل الطلاب</button><div id="ds"></div></div>
 <div class="p"><details><summary>⚙ الإعدادات (الشيتات، الإجابة النموذجية، الشعار)</summary><br>${Object.entries(SH).map(([k,v])=>`<label><input type="checkbox" style="width:auto" ${cfg.active[k]?'checked':''} onchange="cfg.active['${k}']=this.checked?1:0;SV('cfg',cfg)"> ${v.n}</label> <button class="g" onclick="rub('${k}')">الإجابة النموذجية ${cfg.rub&&cfg.rub[k]&&cfg.rub[k].ok?'✔ معتمدة':'(غير معتمدة)'}</button><br>`).join('')}<label>أقصى فرق مسموح بين الفلترين (درجة)</label><input type="number" step=".25" min=".25" max="3" value="${TOL()}" onchange="cfg.tol=+this.value||.5;SV('cfg',cfg);dash('${gr}')" style="width:120px"><br><label><input type="checkbox" style="width:auto" ${cfg.auto===0?'':'checked'} onchange="cfg.auto=this.checked?1:0;SV('cfg',cfg)"> تشغيل التصحيح الذكي تلقائياً لكل الأوراق الجديدة عند فتح الداشبورد</label><br><label>مفتاح التصحيح الذكي للأدمن (مطلوب لتشغيل الفلتر 2)</label><input dir="ltr" placeholder="Paste API key..." value="${GKEY?'••••'+esc(GKEY.slice(-4)):''}" onchange="if(this.value&&!/^•/.test(this.value)){GKEY=this.value.trim();gkSave(GKEY)}"><br><label>شعار المعهد</label><input type="file" accept="image/*" onchange="lg(this)"><label>AI proxy URL (اختياري)</label><input dir="ltr" value="${esc(cfg.proxy||'')}" onchange="cfg.proxy=this.value.trim();SV('cfg',cfg)"><br><button class="g" onclick="cal()">معايرة (Gold set)</button></details></div><button class="g" onclick="splash()">تسجيل خروج</button></div>`)}
 function rev(i){const s=subs[i],e=eff(s),a=s.ai,c=chk(s);show(`<div class="ad" dir="rtl"><div class="p"><h2>مراجعة: ${esc(s.n)} <small>(${s.s} - مجموعة ${esc(s.g)})</small></h2>${BD(c.c,c.t)}${c.R.length?'<ul style="color:#fbbf24">'+c.R.map(r=>'<li>'+esc(r)+'</li>').join('')+'</ul>':''}
 <table><tr><th></th><th>① قواعد</th><th>② التصحيح الذكي</th><th>الفرق</th><th>النهائي الحالي</th></tr><tr><td>خطة التمريض (من ${s.max>15?5:2.5})</td><td>${s.cp}</td><td>${a?a.cp:'—'}</td><td>${a?Math.abs(a.cp-s.cp).toFixed(2):'—'}</td><td><b>${e.cp}</b></td></tr><tr><td>التثقيف الصحي (من ${s.max>15?5:2.5})</td><td>${s.he}</td><td>${a?a.he:'—'}</td><td>${a?Math.abs(a.he-s.he).toFixed(2):'—'}</td><td><b>${e.he}</b></td></tr><tr><td>المجموع الكلي</td><td>${+((s.a||0)+(s.pg||0)+s.cp+s.he).toFixed(2)}</td><td>${a?+((s.a||0)+(s.pg||0)+a.cp+a.he).toFixed(2):'—'}</td><td></td><td><b>${e.tot}</b></td></tr></table>${a?`<small>ثقة التصحيح الذكي: ${a.conf*100|0}%</small>${a.v2?`<br><small>التصحيح الذكي الثاني المستقل: خطة ${a.v2.cp} / تثقيف ${a.v2.he}</small>`:''} <button class="g" onclick="runOne(${i},1,this)">${a.v2?'أعد':'شغّل'} التصحيح الذكي الثاني</button>`:'<p><button onclick="runOne('+i+',0,this)">شغّل الفلتر 2 (التصحيح الذكي) لهذه الورقة</button></p>'}</div>
@@ -1200,6 +1209,52 @@ function draftRestore(){var k=draftKey();if(!k||!document.getElementById('cpb'))
     a.textContent=d;document.getElementById('cd_h').textContent=p2(h);document.getElementById('cd_m').textContent=p2(m);document.getElementById('cd_s').textContent=p2(c);
   }
   tick();setInterval(tick,1000);
+})();
+</script>
+<script>
+/* ===== Review screen: the student's error/correction page (first page of the PDF) shown inline ===== */
+(function(){
+  var _r=rev;
+  rev=function(i){
+    var out=_r.apply(this,arguments);
+    try{errPanel(i)}catch(e){console.warn('error-page panel',e)}
+    return out;
+  };
+  function loadLogo(){return new Promise(function(r){var im=new Image();im.onload=function(){r(im)};im.onerror=function(){r(null)};im.src=cfg.logo})}
+  function errPanel(i){
+    var s0=subs[i],host=document.querySelector('#app .ad .p');
+    if(!s0||!host)return;
+    var box=document.createElement('div');box.className='p';box.id='errpg';
+    box.innerHTML='<h3>صفحة أخطاء الطالب والتصحيح <small>(نفس أول صفحة في الـ PDF)</small></h3><div class="ebody">جارٍ تجهيز الصفحة…</div>';
+    host.insertAdjacentElement('afterend',box);
+    var body=box.querySelector('.ebody');
+    (async function(){
+      try{
+        await hyd(s0);
+        if(!document.body.contains(box))return;
+        if(!keyOfSub(s0)){body.textContent='لا توجد إجابة نموذجية معتمدة لهذا الشيت، لذلك لا يمكن إنشاء صفحة التصحيح.';return}
+        if(s0.srv&&!s0.rc&&window.__vaultOK){try{regrade(s0)}catch(e){console.warn('regrade',e)}}
+        var P=pages(eff(s0),await loadLogo()),n=0,cache={};
+        if(!document.body.contains(box))return;
+        if(!P||!P.length){body.textContent='لا توجد صفحات لعرضها.';return}
+        body.innerHTML='<div class="enav" style="margin-bottom:8px"></div><div style="overflow:auto"><img class="eimg" style="width:100%;max-width:794px;background:#fff;border-radius:6px;display:block;margin:auto;cursor:zoom-in" alt="صفحة التصحيح"></div>';
+        var img=body.querySelector('.eimg'),nav=body.querySelector('.enav');
+        function url(k){return cache[k]||(cache[k]=P[k].toDataURL('image/jpeg',.9))}
+        function draw(){
+          img.src=url(n);
+          nav.innerHTML=(P.length>1?'<button class="g" '+(n?'':'disabled')+' data-d="-1">◀ السابقة</button> <b> صفحة '+(n+1)+' / '+P.length+' </b> <button class="g" '+(n<P.length-1?'':'disabled')+' data-d="1">التالية ▶</button> ':'')+'<button class="g" data-o="1">فتح بحجم كامل ↗</button>'+(n==0?' <small>الأخطاء بالأحمر (إجابة الطالب) وبجانبها الصحيح بالأخضر</small>':'');
+        }
+        nav.onclick=function(ev){
+          var b=ev.target.closest('button');if(!b)return;
+          if(b.dataset.d){n=Math.max(0,Math.min(P.length-1,n+ +b.dataset.d));draw()}
+          else if(b.dataset.o)openFull();
+        };
+        function openFull(){P[n].toBlob(function(bl){if(bl)window.open(URL.createObjectURL(bl),'_blank')},'image/jpeg',.92)}
+        img.onclick=openFull;
+        draw();
+      }catch(e){console.warn(e);if(document.body.contains(box))body.textContent='تعذّر تجهيز الصفحة: '+(e&&(e.message||e.code)||e)}
+    })();
+  }
 })();
 </script>
 </body></html>
