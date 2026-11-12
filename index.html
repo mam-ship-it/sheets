@@ -112,8 +112,8 @@ g.insertAdjacentHTML('beforebegin','<p><b>Student:</b> '+st.n+' - <b>Group:</b> 
 function snapshot(){const S=SH[st.s];return{scn:st.scn,f:S.f.map((f,i)=>f.t=='h'?{h:f.l}:{l:f.l,v:f.t=='k'?($('#f'+i).checked?'Yes':'-'):$('#f'+i).value}),cp:[...document.querySelectorAll('#cpb tr')].map(r=>[...r.querySelectorAll('textarea')].map(t=>t.value.trim())).filter(r=>r.some(x=>x)),he:S.he.map((h,i)=>[h[0],$('#h'+i).value]),pg:st.s=='lab'?{m:marks,t:tx,h:[...document.querySelectorAll('.phi')].map(i=>i.value)}:null}}
 function show(h){$('#app').innerHTML=h;scrollTo(0,0)}
 function splash(){const logo=cfg.logo?`<img src="${cfg.logo}">`:'LOGO';show(`<div class="card sc"><div class="logo">${logo}</div><h1>Clinical Obstetric &amp; Gynecological Nursing</h1><p>Practical Sheets</p><button onclick="reg()">Student</button><button class="g" onclick="myRes()">نتيجتي / My result</button><button class="g" onclick="adm()">Admin</button></div>`)}
-function reg(){show(`<div class="card"><h2>بيانات الطالب / Student data</h2><label>ادخل رقم الـ ID الخاص بالكارنيه الجامعي / University card ID</label><input id="sid" dir="ltr" inputmode="numeric" maxlength="12" autocomplete="off" oninput="chkId()" placeholder="8XXXXXXXX"><h3>اختر النوع / Gender</h3><label class="opt"><input type="radio" name="sx" value="f" onchange="chkId()">أنثى / Female</label><label class="opt"><input type="radio" name="sx" value="m" onchange="chkId()">ذكر / Male</label><div id="sres" style="min-height:64px;margin:10px 0;font-size:15px;line-height:1.9"></div><h3>Choose sheet</h3>${Object.entries(SH).map(([k,v])=>`<label class="opt ${cfg.active[k]?'':'off'}"><input type="radio" name="sh" value="${k}">${v.n}${cfg.active[k]?'':' (not available)'}</label>`).join('')}<button id="sgo" onclick="idNext()">Next</button><button class="g" onclick="splash()">Back</button></div>`)}
-function toScn(){const s=document.querySelector('[name=sh]:checked'),U=window._stu;if(!U||!s)return alert('تأكد من إدخال الـ ID واختيار النوع والشيت\nEnter ID, choose gender and a sheet');const n=U.n,g=U.g;st={n,g,s:s.value,id:U.id};show(`<div class="card"><h2>${SH[st.s].n} - Case scenario</h2><p>Enter the full case scenario with all details (English only).</p><textarea id="scn" style="min-height:260px" dir="ltr"></textarea><button onclick="scnOk()">OK</button></div>`)}
+function reg(){show(`<div class="card"><h2>بيانات الطالب / Student data</h2><label>ادخل رقم الـ ID الخاص بالكارنيه الجامعي / University card ID</label><input id="sid" dir="ltr" inputmode="numeric" maxlength="12" autocomplete="off" oninput="chkId()" placeholder="8XXXXXXXX"><div id="sres" style="min-height:64px;margin:10px 0;font-size:15px;line-height:1.9"></div><h3>Choose sheet</h3>${Object.entries(SH).map(([k,v])=>`<label class="opt ${cfg.active[k]?'':'off'}"><input type="radio" name="sh" value="${k}">${v.n}${cfg.active[k]?'':' (not available)'}</label>`).join('')}<button id="sgo" onclick="idNext()">Next</button><button class="g" onclick="splash()">Back</button></div>`)}
+function toScn(){const s=document.querySelector('[name=sh]:checked'),U=window._stu;if(!U||!s)return alert('تأكد من إدخال الـ ID واختيار الشيت\nEnter ID and choose a sheet');const n=U.n,g=U.g;st={n,g,s:s.value,id:U.id};show(`<div class="card"><h2>${SH[st.s].n} - Case scenario</h2><p>Enter the full case scenario with all details (English only).</p><textarea id="scn" style="min-height:260px" dir="ltr"></textarea><button onclick="scnOk()">OK</button></div>`)}
 function toSheet(){const s=$('#scn').value.trim();if(s.length<60)return alert('Please enter the complete scenario');if(/[\u0600-\u06FF]/.test(s))return alert('English only please');st.scn=s;const S=SH[st.s];
 const row=()=>`<tr><td><textarea class="cpd" placeholder="Nursing diagnosis: ... related to ... as evidenced by ..."></textarea></td><td><textarea class="cpg" placeholder="Goal"></textarea></td><td><textarea class="cpi" placeholder="One step per line: assessment, nursing interventions, then medications"></textarea></td></tr>`;window.addRow=()=>$('#cpb').insertAdjacentHTML('beforeend',row());
 show(`<div class="card"><h2>${S.n}</h2><p>${st.n} - Group ${st.g}</p><h3>${S.hdr}</h3><div class="grid">${S.f.map((f,i)=>`<div><label>${f.l}</label>${f.t=='y'?`<select id="f${i}"><option value="">--</option><option>Yes</option><option>No</option></select>`:`<input id="f${i}" ${f.t=='d'?'type=date':''}>`}</div>`).join('')}</div>${st.s=='lab'?``:''}
@@ -296,7 +296,7 @@ h+='<h2>Expected answers</h2><table><tr><th>Field</th><th>Expected answer</th></
 h+='<h2>Nursing care plans (all accepted problems)</h2>'+(K.careplans||[]).map((c,n)=>'<h3>'+(n+1)+'. '+E(c.problem)+' <small>(priority '+E(c.priority)+')</small></h3><p><b>Other accepted diagnoses:</b> '+(L(c.alt_diagnoses)||'-')+'<br><b>Keywords:</b> '+(L(c.keywords)||'-')+'<br><b>Goal:</b> '+E(c.goal)+(c.alt_goals&&c.alt_goals.length?'<br><b>Other accepted goals:</b> '+L(c.alt_goals):'')+'</p><ol>'+(c.interventions||[]).map(x=>'<li>['+E(x.type)+'] '+E(x.text)+'</li>').join('')+'</ol><p style="color:#b00"><b>Unsafe actions:</b> '+(L(c.unsafe)||'-')+'</p>').join('');
 h+='<h2>Health education</h2>'+(K.he||[]).map(c=>'<h3>'+E(c.category)+'</h3><ul>'+(c.points||[]).map(p=>'<li>'+E(p.text)+'</li>').join('')+'</ul>').join('');
 h+='<h2>General unsafe actions</h2><p>'+(L(K.unsafe)||'-')+'</p></body></html>';dlTxt('Answer_key_'+safe(s.n)+'.html',h,'text/html')}
-async function cloudRefresh(){if(!sb)return alert('Cloud is not configured');const e=$('#grsel'),g=e?e.value:undefined,sx=window._asx||'f';try{await cloudSync();await adminCounts();await adminLoad(sx,true)}catch(er){return alert('Could not load submissions: '+(er.message||er))}dash(g)}
+async function cloudRefresh(){if(!sb)return alert('Cloud is not configured');const e=$('#grsel'),g=e?e.value:undefined,sx='m';try{await cloudSync();await adminCounts();await adminLoad(sx,true)}catch(er){return alert('Could not load submissions: '+(er.message||er))}dash(g)}
 async function genKey(k,scn,gk){const S=SH[k],labels=S.f.filter(f=>f.t!='h').map(f=>f.l),cats=S.he.map(h=>h[0]),H0='You are an expert OB/GYN nursing instructor. Read the case scenario and build PART of the answer key for a nursing student sheet. Return JSON only (no markdown, no commentary):\n',T='\nScenario: '+scn;
 const pA=H0+`{"answers":{<for EVERY label below, the exact label as key>:"expected answer from the scenario: a number, short text, Yes/No (checkbox and yes/no fields: Yes or No), ISO date for dates, or 'Not mentioned'"}${k=='lab'?',"partograph":[{"hour":1,"cervix":0,"descent":0,"fhr":0,"contractions":0,"pulse":0}] ONLY if the scenario gives hourly values (otherwise omit this field)':''}}
 Labels: ${labels.join(' | ')}`+T;
@@ -399,9 +399,9 @@ if(a.conf<.7)R.push('ثقة التصحيح الذكي منخفضة ('+(a.conf*10
 const dc=Math.abs(a.cp-s.cp),dh=Math.abs(a.he-s.he);if(dc>TOL())R.push('فرق خطة التمريض '+dc.toFixed(2));if(dh>TOL())R.push('فرق التثقيف الصحي '+dh.toFixed(2));
 return R.length?{k:'bad',t:'يحتاج مراجعتك ⚠',c:'#f59e0b',R}:{k:'good',t:'متفق عليه ✓',c:'#38bdf8',R}}
 function okS(i,b){const s=subs[i];(s.log=s.log||[]).push({t:new Date().toLocaleString(),f:'CP '+eff(s).cp+' / HE '+eff(s).he,to:'اعتماد',r:'اعتمده الدكتور'});s.ok=1;SV('subs',subs);cloudSync();b?dash(s.g):rev(i)}
-function okAll(g){const L=subs.map((s,i)=>i).filter(i=>subs[i].g==g&&sxOf(subs[i])==(window._asx||'f')&&chk(subs[i]).k=='good');if(!L.length)return alert('لا توجد أوراق متفق عليها للاعتماد');if(!confirm('اعتماد '+L.length+' ورقة متفق عليها بين الفلتر 1 و2؟'))return;L.forEach(i=>{const s=subs[i];(s.log=s.log||[]).push({t:new Date().toLocaleString(),f:'',to:'اعتماد جماعي',r:'متفق عليه'});s.ok=1});SV('subs',subs);cloudSync();dash(g)}
+function okAll(g){const L=subs.map((s,i)=>i).filter(i=>subs[i].g==g&&sxOf(subs[i])==('m')&&chk(subs[i]).k=='good');if(!L.length)return alert('لا توجد أوراق متفق عليها للاعتماد');if(!confirm('اعتماد '+L.length+' ورقة متفق عليها بين الفلتر 1 و2؟'))return;L.forEach(i=>{const s=subs[i];(s.log=s.log||[]).push({t:new Date().toLocaleString(),f:'',to:'اعتماد جماعي',r:'متفق عليه'});s.ok=1});SV('subs',subs);cloudSync();dash(g)}
 function needFlag(s){const a=s.ai,r=[];if(!a){r.push('لم يُصحَّح بالتصحيح الذكي');return r}const d=Math.max(Math.abs(a.cp-s.cp),Math.abs(a.he-s.he));if(d>=1)r.push('اختلاف كبير ('+d.toFixed(2)+' درجة)');let sm=[];try{sm=cpy(s)||[]}catch(x){}if(sm.length)r.push('تشابه مع '+sm.slice(0,2).map(x=>x.n+' '+x.p+'%').join('، '));if(a.flags&&a.flags.length)r.push('تنبيه أمان');if(a.mism)r.push('سيناريو مختلف');return r}
-function okNeed(g){const L=subs.map((s,i)=>i).filter(i=>subs[i].g==g&&sxOf(subs[i])==(window._asx||'f')&&chk(subs[i]).k=='bad');if(!L.length)return alert('لا توجد أوراق تحتاج مراجعة في هذه المجموعة');
+function okNeed(g){const L=subs.map((s,i)=>i).filter(i=>subs[i].g==g&&sxOf(subs[i])==('m')&&chk(subs[i]).k=='bad');if(!L.length)return alert('لا توجد أوراق تحتاج مراجعة في هذه المجموعة');
 const F=[],S=[];L.forEach(i=>{const r=needFlag(subs[i]);(r.length?F:S).push([i,r])});
 let m='';if(F.length){m='⚠ فيه '+F.length+' ورقة فيها اختلاف كبير أو تشابه بين الطلاب (أو تنبيه آخر)، وهي لن تُعتمد وتبقى لمراجعتك:\n\n'+F.slice(0,8).map(([i,r])=>'• '+subs[i].n+' — '+r.join('، ')).join('\n')+(F.length>8?'\n… و'+(F.length-8)+' أخرى':'')+'\n\n';
 if(!S.length){alert(m+'ولا توجد أوراق أخرى للاعتماد الجماعي. راجعها بنفسك.');return dash(g,'bad')}
@@ -409,7 +409,7 @@ m+='هل توافق على اعتماد الـ '+S.length+' ورقة الباق�
 else m='سيتم اعتماد '+S.length+' ورقة تحتاج مراجعة دفعة واحدة بدرجاتها الحالية (لا اختلاف كبير ولا تشابه).\nهل أنت متأكد؟';
 if(!confirm(m))return dash(g,'bad');
 S.forEach(([i])=>{const s=subs[i],e=eff(s);(s.log=s.log||[]).push({t:new Date().toLocaleString(),f:'CP '+e.cp+' / HE '+e.he,to:'اعتماد جماعي',r:'اعتماد جماعي للأوراق التي تحتاج مراجعة (بعد استبعاد الاختلاف الكبير والتشابه)'});s.ok=1});SV('subs',subs);cloudSync();dash(g,F.length?'bad':undefined)}
-function dash(gr,f){CPC=new WeakMap();const SX=window._asx||'f',SB=subs.filter(s=>sxOf(s)==SX),gs=[...new Set(SB.map(s=>s.g))].sort(gsort);gr=gr||(SB.length?SB[SB.length-1].g:gs[0])||'';f=f||window._af||'all';window._af=f;const C={all:0,bad:0,good:0,done:0,no:0};SB.forEach(s=>{C[chk(s).k]++;C.all++});
+function dash(gr,f){CPC=new WeakMap();const SX='m',SB=subs.filter(s=>sxOf(s)==SX),gs=[...new Set(SB.map(s=>s.g))].sort(gsort);gr=gr||(SB.length?SB[SB.length-1].g:gs[0])||'';f=f||window._af||'all';window._af=f;const C={all:0,bad:0,good:0,done:0,no:0};SB.forEach(s=>{C[chk(s).k]++;C.all++});
 const L=subs.map((s,i)=>[s,i]).filter(x=>x[0].g==gr&&sxOf(x[0])==SX&&(f=='all'||chk(x[0]).k==f)).reverse(),ch=(k,t)=>`<button class="ch g ${f==k?'on':''}" onclick="dash('${gr}','${k}')">${t} (${C[k]})</button>`;
 show(`<div class="ad" dir="rtl">${TABS(SX)}<div class="p" ><h2>كيف يتم التصحيح؟ (3 فلاتر)</h2><div class="fl"><div class="fb"><b class="n">1</b><b>تصحيح بالقواعد</b><br><small>تلقائي لحظة التسليم: كلمات مفتاحية، صيغة التشخيص (related to / evidenced by)، ترتيب الأولويات.</small></div><div class="fb"><b class="n">2</b><b>التصحيح الذكي</b><br><small>يقرأ إجابة الطالب ويقارنها بالإجابة النموذجية المعتمدة، ويقبل أي إجابة صحيحة إكلينيكياً.</small></div><div class="fb"><b class="n">3</b><b>المطابقة ومراجعتك</b><br><small>لو الفلتران اتفقا (فرق ≤ ${TOL()}) وثقة التصحيح الذكي ≥ 70% ولا تنبيهات: تُعتمد. غير كده تظهر لك للمراجعة، ولا تُعتبر نهائية إلا باعتمادك.</small></div><div class="fb"><b class="n">+</b><b>فحوصات أمان إضافية</b><br><small>تصحيح ذكي ثانٍ مستقل للأوراق المشكوك فيها، فحص آلي (ورقة فاضية، تكرار، عبارات خطرة)، وكشف التشابه بين الطلاب.</small></div></div></div>
 <div class="p"><div class="st"><div class="sc2"><big>${C.all}</big>كل الأوراق</div><div class="sc2"><big style="color:#94a3b8">${C.no}</big>لم تُصحَّح بالتصحيح الذكي</div><div class="sc2"><big style="color:#38bdf8">${C.good}</big>متفق عليها</div><div class="sc2"><big style="color:#f59e0b">${C.bad}</big>تحتاج مراجعتك</div><div class="sc2"><big style="color:#22c55e">${C.done}</big>معتمدة</div></div></div>
@@ -444,22 +444,22 @@ const r=subs[subs.length-1]||{},sec=(t,a)=>'<h3 style="margin:14px 0 4px">'+t+'<
 p.innerHTML='<div dir="rtl" style="text-align:right;border:1px solid var(--b);border-radius:12px;padding:12px;margin:10px 0;line-height:1.8"><b>أخطاؤك في الشيت</b> <small>(لن تظهر الإجابات الصحيحة، راجع الخانات دي بنفسك)</small>'+sec('① البيانات والفحص (History &amp; examination)',H)+(st.s=='lab'&&r.pg!=null&&r.pg<3?sec('② البارتوجراف',(window.PGE&&window.PGE.length?window.PGE.slice(0,14):['راجع رسم البارتوجراف: الدرجة '+r.pg+' من 3 (نقاط عنق الرحم، نزول الرأس، نبض الجنين، التقلصات)'])):'')+sec('③ خطة التمريض (Nursing care plan)',CPE.map(esc))+sec('④ التثقيف الصحي (Health education)',HEE.map(x=>esc(x)+' - ناقص، أضف نقاطاً أكثر ودقة'))+'<p style="margin-top:12px"><small>الدرجة مؤقتة، والدكتور يعتمد الدرجة النهائية.</small></p></div>'}
 const _fin5=fin;fin=async function(){const r=await _fin5.apply(this,arguments);errBtn();return r};
 
-/* ===== Male students: internal model-answer grading (no smart assistant) ===== */
-const sxOf=s=>(s.ans&&s.ans.sx)||'f';
+/* ===== Male-style grading for ALL students: expanded internal key (filter 1) + smart AI (filter 2) ===== */
+const rawSx=s=>(s.ans&&s.ans.sx)||'f',sxOf=s=>'m';window._sx='m';window._asx='m';
 const S2=x=>x.split(','),I2=a=>a.split(';').map(s=>{const[t,x,k]=s.split('|');return{text:x,type:{a:'assessment',n:'nursing',m:'medication'}[t],keywords:S2(k||x)}});
 let GEN=[],BANK=[],HB=[];
 window.__setBank=function(v){GEN=I2(v.GEN);
 BANK=v.BANK.map((x,i)=>{const[p,pb,kw,goal,iv]=x.split('#');return{rank:20+i,priority:+p,problem:pb,alt_diagnoses:[],keywords:S2(kw),goal,alt_goals:[],interventions:I2(iv),unsafe:[]}});
 HB=v.HB.map(([r,p])=>[new RegExp(r,'i'),p.split(';').map(x=>{const[t,k]=x.split('|');return{text:t,keywords:S2(k)}})])};
 function maleKey(J){const cps=(J.careplans||[]).map(c=>({...c,interventions:[...c.interventions,...GEN.filter(g=>!c.interventions.some(x=>x.text==g.text))]})).concat(BANK.map(b=>({...b,interventions:[...b.interventions,...GEN]}))),he=(J.he||[]).map(e=>({...e,points:[...(e.points||[]),...HB.filter(b=>b[0].test(e.category||'')).flatMap(b=>b[1])]}));return{...J,careplans:cps,he}}
-const _toScn=toScn;toScn=function(){const x=document.querySelector('[name=sx]:checked');if(!x)return alert('اختر نوع الطالب: ذكر أم أنثى\nChoose: Male or Female');window._sx=x.value;return _toScn.apply(this,arguments)};
-const _so5=scnOk;scnOk=function(){st.sx=window._sx||'f';if(st.sx!='m')return _so5.apply(this,arguments);const t=$('#scn').value.trim();if(t.length<60)return alert('Please enter the complete scenario');if(/[\u0600-\u06FF]/.test(t))return alert('English only please');show('<textarea id="scn" hidden></textarea>');$('#scn').value=t;return toSheet()};
+const _toScn=toScn;toScn=function(){window._sx='m';return _toScn.apply(this,arguments)};
+const _so5=scnOk;scnOk=function(){st.sx='m';if(st.sx!='m')return _so5.apply(this,arguments);const t=$('#scn').value.trim();if(t.length<60)return alert('Please enter the complete scenario');if(/[\u0600-\u06FF]/.test(t))return alert('English only please');show('<textarea id="scn" hidden></textarea>');$('#scn').value=t;return toSheet()};
 const _ts5=toSheet;toSheet=async function(){if(st.sx!='m')return _ts5.apply(this,arguments);st.mism=false;st.key=null;st.keyP=null;st.keyDone=1;st.ks='';st.keyErr='';return _ts2()};
-const _snap=snapshot;snapshot=function(){const o=_snap();o.sx=st.sx||'f';if(st.sx=='m'){o.mism=!!st.mism;o.cpe=CPE.slice(0,12);o.hee=HEE.slice(0,8);st.key=null}return o};
+const _snap=snapshot;snapshot=function(){const o=_snap();o.sx='m';if(st.sx=='m'){o.mism=!!st.mism;o.cpe=CPE.slice(0,12);o.hee=HEE.slice(0,8);st.key=null}return o};
 const _chk0=chk;chk=function(s){return _chk0(s);if(s.ov||s.ok)return{k:'done',t:'معتمد ✔',c:'#22c55e',R:[]};const R=det(s),A=s.ans||{};if(A.mism)R.push('السيناريو المكتوب يختلف عن سيناريوك الرسمي');(A.cpe||[]).filter(x=>/غير مرتبطة|غير آمن|ترتيب/.test(x)).forEach(x=>R.push('خطة التمريض: '+x));return R.length?{k:'bad',t:'يحتاج مراجعتك ⚠',c:'#f59e0b',R}:{k:'good',t:'جاهز للاعتماد ✓',c:'#38bdf8',R}};
-const MPANEL='<div class="p"><h2>كيف يتم تصحيح الطلاب الذكور؟ (بدون تصحيح ذكي)</h2><div class="fl"><div class="fb"><b class="n">1</b><b>محرك الإجابة النموذجية</b><br><small>يعتمد على سيناريوك المحفوظ والحل النموذجي والشروط الداخلية. أكثر من 18 مشكلة تمريض مقبولة وأكثر من 25 نقطة تثقيف، ويفهم المرادفات والأخطاء الإملائية البسيطة وصياغات الطالب المختلفة.</small></div><div class="fb"><b class="n">2</b><b>فحوصات آلية</b><br><small>ورقة فاضية، تكرار، عبارات خطرة، مشكلة لم يتعرف عليها النظام، سيناريو مختلف، وتشابه مع طالب آخر.</small></div><div class="fb"><b class="n">3</b><b>مراجعتك</b><br><small>الورقة المتفق عليها "جاهزة للاعتماد"، والمشكوك فيها تظهر لك بأسبابها، ولا تُعتبر نهائية إلا باعتمادك.</small></div></div></div>';
-const TABS=SX=>{const n=x=>cntOf(x),b=(x,t)=>`<button class="${SX==x?'':'g'}" onclick="window._asx='${x}';window._af='all';dash('')">${t} (${n(x)})</button>`;return'<div class="p">'+b('f','👩 الطالبات (تصحيح ذكي)')+b('m','👨 الطلاب الذكور (تصحيح ذكي)')+'</div>'};
-const _rev9=rev;rev=function(i){_rev9(i);const s=subs[i];return;document.querySelectorAll('#app button').forEach(b=>{if(/aiGrade|aiSecond/.test(b.getAttribute('onclick')||''))b.remove()});const A=s.ans||{},L=[...(A.cpe||[]),...(A.hee||[]).map(x=>'تثقيف صحي ناقص: '+x)],p=document.querySelector('#app .ad .p');p&&p.insertAdjacentHTML('beforeend','<p class="mu">طالب ذكر: التصحيح بالنموذج الداخلي بدون تصحيح ذكي.</p>'+(L.length?'<b>ما رصده النظام في إجابته:</b><ul>'+L.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p>لم يرصد النظام أخطاء ظاهرة.</p>'))};
+const MPANEL='<div class="p"><h2>كيف يتم تصحيح الطلاب؟ (قواعد + تصحيح ذكي + مراجعتك)</h2><div class="fl"><div class="fb"><b class="n">1</b><b>محرك الإجابة النموذجية</b><br><small>يعتمد على سيناريوك المحفوظ والحل النموذجي والشروط الداخلية. أكثر من 18 مشكلة تمريض مقبولة وأكثر من 25 نقطة تثقيف، ويفهم المرادفات والأخطاء الإملائية البسيطة وصياغات الطالب المختلفة.</small></div><div class="fb"><b class="n">2</b><b>فحوصات آلية</b><br><small>ورقة فاضية، تكرار، عبارات خطرة، مشكلة لم يتعرف عليها النظام، سيناريو مختلف، وتشابه مع طالب آخر.</small></div><div class="fb"><b class="n">3</b><b>مراجعتك</b><br><small>الورقة المتفق عليها "جاهزة للاعتماد"، والمشكوك فيها تظهر لك بأسبابها، ولا تُعتبر نهائية إلا باعتمادك.</small></div></div></div>';
+const TABS=SX=>{const n=x=>cntOf(x),b=(x,t)=>`<button class="${SX==x?'':'g'}" onclick="window._asx='${x}';window._af='all';dash('')">${t} (${n(x)})</button>`;return''};
+const _rev9=rev;rev=function(i){_rev9(i);const s=subs[i];return;document.querySelectorAll('#app button').forEach(b=>{if(/aiGrade|aiSecond/.test(b.getAttribute('onclick')||''))b.remove()});const A=s.ans||{},L=[...(A.cpe||[]),...(A.hee||[]).map(x=>'تثقيف صحي ناقص: '+x)],p=document.querySelector('#app .ad .p');p&&p.insertAdjacentHTML('beforeend','<p class="mu">التصحيح بالنموذج الداخلي الموسّع + التصحيح الذكي.</p>'+(L.length?'<b>ما رصده النظام في إجابته:</b><ul>'+L.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p>لم يرصد النظام أخطاء ظاهرة.</p>'))};
 </script><style id="v3">
 html{font-size:17px}body{font-size:1rem}
 .w{width:100%;max-width:1280px;padding:14px}
@@ -567,7 +567,7 @@ document.addEventListener('change',e=>{const t=e.target;if(t.type=='checkbox'&&/
 const _reg=reg;reg=async function(){await loadActive();_reg()};
 const _ts9=toScn;toScn=function(){const s=document.querySelector('[name=sh]:checked');if(s&&!cfg.active[s.value])return alert('هذا الشيت غير متاح حالياً / This sheet is not available now');return _ts9.apply(this,arguments)};
 /* admin: choose females / males screen first */
-function chooser(){const n=x=>cntOf(x);show(`<div class="card sc"><h2>اختر القسم</h2><div class="grid"><button style="padding:30px;font-size:1.3rem" onclick="pickSx('f')">👩 الطالبات<br><small>(${n('f')})</small></button><button style="padding:30px;font-size:1.3rem" onclick="pickSx('m')">👨 الطلاب الذكور<br><small>(${n('m')})</small></button></div><button class="g" onclick="splash()">تسجيل خروج</button></div>`)}
+function chooser(){return pickSx('m')}
 window.pickSx=async x=>{window._asx=x;window._af='all';await loadActive();dash('')};
 const _d9=dash;dash=function(gr,f){if(!window._chosen){window._chosen=1;return chooser()}return _d9.apply(this,arguments)};
 const _a9=adm;adm=function(){window._chosen=0;_a9()};
@@ -660,13 +660,13 @@ try{if(!sb)throw new Error('no cloud');const q=await sb.rpc('student_lookup',{p_
 catch(e){if(my===_chkSeq)msg('#dc2626','⚠ تعذّر الاتصال بالسيرفر، تأكد من الإنترنت وحاول تاني<br>Connection problem, please try again');return false}
 if(my!==_chkSeq)return false;
 if(!r){msg('#dc2626','❌ هذا الـ ID غير مسجل — راجع رقم الكارنيه<br>ID not found');return false}
-if(!x){msg('#6b7280','اختر النوع: ذكر أم أنثى<br>Choose gender');return false}
-if(_gOf(r.g)!==x.value){msg('#dc2626','❌ النوع المختار لا يتوافق مع بيانات هذا الـ ID<br>Gender does not match this ID');return false}
+
+
 box.innerHTML='<div style="color:#16a34a;font-weight:700">'+'الاسم: '+esc(r.n)+'<br>رقم المجموعة: '+esc(r.g)+'<br>✅ البيانات صحيحة / Data verified</div>';i.style.borderColor='#16a34a';
 window._stu={id:id,n:r.n,g:r.g};return true}
 async function idNext(){const i=document.getElementById('sid');if(!i||!_digits(i.value))return alert('ادخل رقم الـ ID الخاص بالكارنيه الجامعي\nEnter your university card ID');
-if(!document.querySelector('[name=sx]:checked'))return alert('اختر النوع: ذكر أم أنثى\nChoose: Male or Female');
-if(!(await chkId(true)))return alert('❌ البيانات غير صحيحة — راجع الـ ID والنوع\nInvalid data — check your ID and gender');
+
+if(!(await chkId(true)))return alert('❌ البيانات غير صحيحة — راجع الـ ID\nInvalid data — check your ID');
 if(!document.querySelector('[name=sh]:checked'))return alert('اختر الشيت / Choose a sheet');
 const U=window._stu,b=document.getElementById('sgo');b.disabled=true;
 setTimeout(()=>{window._stu=U;toScn()},600)}
@@ -1000,12 +1000,13 @@ dash=function(){const r=_dLK.apply(this,arguments);try{lkMount()}catch(e){consol
    admin: paged loading from the server, similarity index, lazy full-paper download, partial sync
    student: draft auto-save (male students) ===== */
 var LOADED={f:0,m:0},_cur={},COUNTS=null,_simGen=0;
-function cntOf(x){return COUNTS?COUNTS.filter(function(r){return r.sx==x}).reduce(function(a,r){return a+(+r.n||0)},0):subs.filter(function(s){return sxOf(s)==x}).length}
+function cntRaw(x){return COUNTS?COUNTS.filter(function(r){return r.sx==x}).reduce(function(a,r){return a+(+r.n||0)},0):subs.filter(function(s){return rawSx(s)==x}).length}
+function cntOf(x){return cntRaw('f')+cntRaw('m')}
 async function adminCounts(){var r=await sb.rpc('admin_counts');if(r.error)throw r.error;COUNTS=r.data||[]}
 function capProg(got,tot){var e=document.getElementById('ldt');if(e)e.textContent='جارٍ تحميل الأوراق… '+got+' / '+tot}
 async function adminLoad(sx,inc){
-  var tot=cntOf(sx),ts=null,rid=null,got=0,out=[];
-  if(inc&&_cur[sx]){ts=new Date(new Date(_cur[sx].ts).getTime()-120000).toISOString();rid='00000000-0000-0000-0000-000000000000'}else{subs=subs.filter(function(s){return sxOf(s)!=sx});_cur[sx]=null}
+  var tot=cntRaw(sx),ts=null,rid=null,got=0,out=[];
+  if(inc&&_cur[sx]){ts=new Date(new Date(_cur[sx].ts).getTime()-120000).toISOString();rid='00000000-0000-0000-0000-000000000000'}else{subs=subs.filter(function(s){return rawSx(s)!=sx});_cur[sx]=null}
   for(;;){
     var r=null;
     for(var t=0;t<3;t++){r=await sb.rpc('admin_subs_page',{p_sx:sx,p_after_ts:ts,p_after_rid:rid,p_limit:200});if(!r.error)break;await new Promise(function(z){setTimeout(z,800*(t+1))})}
@@ -1020,13 +1021,14 @@ async function adminLoad(sx,inc){
   subs=subs.concat(out.filter(function(d){return !have.has(d.rid)}));
   _simGen++;LOADED[sx]=1;
 }
+var _al1=adminLoad;adminLoad=async function(sx,inc){await _al1('f',inc);await _al1('m',inc)};
 async function capLoadAll(){if(!LOADED.f)await adminLoad('f');if(!LOADED.m)await adminLoad('m')}
 
 /* dashboard: load the selected section on first use, then grade the opened group from the stored answers */
 function defGroup(sx){var SB=subs.filter(function(s){return sxOf(s)==sx});return SB.length?SB[SB.length-1].g:''}
 function gNeeds(sx,g){return subs.some(function(s){return s.srv&&!s.rc&&String(s.g)==String(g)&&sxOf(s)==sx})}
 function capErr(e){show('<div class="card sc" dir="rtl"><h2 style="color:#e11">تعذّر تحميل / تصحيح الأوراق</h2><p dir="ltr">'+esc(e&&(e.message||e.code)||e)+'</p><button onclick="dash(\'\')">إعادة المحاولة</button><button class="g" onclick="splash()">خروج</button></div>')}
-(function(){var _d=dash;dash=function(gr,f){var sx=window._asx||'f',t=this,a=arguments;
+(function(){var _d=dash;dash=function(gr,f){var sx='m',t=this,a=arguments;
   if(window._chosen&&sb&&COUNTS){
     var need=!LOADED[sx],g0=gr||(need?'':defGroup(sx));
     if(need||(g0&&gNeeds(sx,g0))){
@@ -1053,19 +1055,19 @@ async function hyd(s){if(!s||!s.L||!sb)return s;await cloudSync();
   var r=await sb.from('submissions').select('data').eq('rid',s.rid).maybeSingle();
   if(r.error||!r.data)throw (r.error||new Error('Paper not found'));
   Object.keys(s).forEach(function(k){delete s[k]});Object.assign(s,r.data.data);_sig[s.rid]=SIGF(s);return s}
-async function hydGroup(g,sx0){var sx=sx0||window._asx||'f',need=subs.filter(function(s){return s.L&&String(s.g)==String(g)&&sxOf(s)==sx});
+async function hydGroup(g,sx0){var sx=sx0||'m',need=subs.filter(function(s){return s.L&&String(s.g)==String(g)&&sxOf(s)==sx});
   if(!need.length||!sb)return;await cloudSync();var m=new Map(need.map(function(s){return[s.rid,s]}));
-  var r=await sb.from('submissions').select('rid,data').eq('sx',sx).eq('grp',String(g)).limit(1000);if(r.error)throw r.error;
+  var r=await sb.from('submissions').select('rid,data').eq('grp',String(g)).limit(1000);if(r.error)throw r.error;
   (r.data||[]).forEach(function(x){var s=m.get(x.rid);if(!s)return;Object.keys(s).forEach(function(k){delete s[k]});Object.assign(s,x.data);_sig[s.rid]=SIGF(s)})}
 (function(){
   var _mk=mkpdf;mkpdf=async function(s){await hyd(s);if(s.srv&&!s.rc&&window.__vaultOK){try{regrade(s)}catch(e){console.warn('regrade',e)}}return _mk.call(this,s)};
   var _kd=keyDoc;keyDoc=async function(i){await hyd(subs[i]);return _kd.call(this,i)};
   var _ag=aiGrade;aiGrade=async function(i){await hyd(subs[i]);return _ag.call(this,i)};
-  var _zg=zipG;zipG=async function(g){try{await ensureGradedFor(window._asx||'f',g);await hydGroup(g)}catch(e){console.warn('zipG prep',e)}return _zg.call(this,g)};
+  var _zg=zipG;zipG=async function(g){try{await ensureGradedFor('m',g);await hydGroup(g)}catch(e){console.warn('zipG prep',e)}return _zg.call(this,g)};
   var _xa=xlAll;xlAll=async function(){try{await capLoadAll();await ensureAllGraded()}catch(e){return alert('Could not load / grade submissions: '+(e.message||e))}return _xa.apply(this,arguments)};
   zipAll=async function(){
     if(!window.JSZip||!window.jspdf)return alert('Libraries failed to load. Check your internet connection.');
-    var sx=window._asx||'f',gs=[...new Set(subs.filter(function(s){return sxOf(s)==sx}).map(function(s){return s.g}))].sort(gsort);
+    var sx='m',gs=[...new Set(subs.filter(function(s){return sxOf(s)==sx}).map(function(s){return s.g}))].sort(gsort);
     if(!gs.length)return alert('No submissions yet');
     if(!confirm('سيتم تنزيل '+gs.length+' ملف ZIP (واحد لكل مجموعة) واحداً بعد الآخر، لأن وضع كل الطلاب في ملف واحد يستهلك ذاكرة المتصفح. موافق؟'))return;
     for(var i=0;i<gs.length;i++)await zipG(gs[i])};
@@ -1272,7 +1274,7 @@ var CAT=[
  ['diff',/^فرق /,'فرق بين التصحيح بالقواعد والذكي',0],
  ['noai',/لم يُصحَّح بالتصحيح الذكي/,'لم يُصحَّح بالتصحيح الذكي بعد',0]
 ];
-var SXN={f:'طالبات',m:'طلاب'};
+var SXN={f:'طلاب',m:'طلاب'};
 function say(m){var e=document.getElementById('ds');if(e)e.textContent=m}
 function collect(){
   var out=[],pairs={};
