@@ -415,7 +415,7 @@ show(`<div class="ad" dir="rtl">${TABS(SX)}<div class="p" ><h2>كيف يتم ا�
 <div class="p"><div class="st"><div class="sc2"><big>${C.all}</big>كل الأوراق</div><div class="sc2"><big style="color:#94a3b8">${C.no}</big>لم تُصحَّح بالتصحيح الذكي</div><div class="sc2"><big style="color:#38bdf8">${C.good}</big>متفق عليها</div><div class="sc2"><big style="color:#f59e0b">${C.bad}</big>تحتاج مراجعتك</div><div class="sc2"><big style="color:#22c55e">${C.done}</big>معتمدة</div></div></div>
 <div class="p"><label>المجموعة </label><select id="grsel" onchange="dash(this.value)" style="width:auto">${gs.map(g=>`<option ${g==gr?'selected':''}>${g}</option>`).join('')||'<option>لا توجد أوراق</option>'}</select> <button class="g" onclick="cloudRefresh()">تحديث من السحابة</button><br>${ch('all','الكل')}${ch('no','لم تُصحَّح')}${ch('good','متفق عليها')}${ch('bad','تحتاج مراجعة')}${ch('done','معتمدة')}
 <div style="overflow:auto;margin-top:8px"><table><tr><th>الاسم</th><th>الشيت</th><th>① قواعد<br><small>خطة / تثقيف</small></th><th>② التصحيح الذكي<br><small>خطة / تثقيف</small></th><th>③ الحالة</th><th>الدرجة النهائية</th><th></th></tr>${L.map(([s,i])=>{const e=eff(s),c=chk(s),a=s.ai;return`<tr><td>${esc(s.n)}</td><td>${s.s}</td><td>${s.cp} / ${s.he}</td><td>${a?a.cp+' / '+a.he:'—'}</td><td>${BD(c.c,c.t)}</td><td>${e.tot}/${s.max}${c.k=='done'?'':' <small>(مؤقتة)</small>'}</td><td><button onclick="rev(${i})">مراجعة</button>${c.k=='good'?`<button class="g" onclick="okS(${i},1)">اعتماد</button>`:''}<button class="g" onclick="onePdf(${i})">PDF</button></td></tr>`}).join('')||'<tr><td colspan="7">لا توجد أوراق</td></tr>'}</table></div><br>
-<button onclick="window._autoStop=0;gAll('${gr}')">شغّل الفلتر 2 (التصحيح الذكي) للمجموعة</button><button onclick="okAll('${gr}')">اعتماد كل المتفق عليه</button><button style="background:#f59e0b;color:#000" onclick="okNeed('${gr}')">اعتماد كل اللي يحتاج مراجعة (${C.bad})</button><button class="g" onclick="xl('${gr}')">Excel</button><button class="g" onclick="zipG('${gr}')">PDF لكل طالب (ZIP)</button><button class="g" onclick="xlAll()">Excel كل المجموعات</button><button class="g" onclick="zipAll()">ZIP كل الطلاب</button><div id="ds"></div></div>
+<button onclick="window._autoStop=0;gAll('${gr}')">شغّل الفلتر 2 (التصحيح الذكي) للمجموعة</button><button onclick="okAll('${gr}')">اعتماد كل المتفق عليه</button><button style="background:#f59e0b;color:#000" onclick="okNeed('${gr}')">اعتماد كل اللي يحتاج مراجعة (${C.bad})</button><button style="background:#dc2626" onclick="okEverything()">⛔ اعتماد كل اللي يحتاج مراجعة (كل المجموعات) بعد تصدير Excel</button><button class="g" onclick="suspectXl()">Excel المشكوك فيهم (بدون اعتماد)</button><button class="g" onclick="xl('${gr}')">Excel</button><button class="g" onclick="zipG('${gr}')">PDF لكل طالب (ZIP)</button><button class="g" onclick="xlAll()">Excel كل المجموعات</button><button class="g" onclick="zipAll()">ZIP كل الطلاب</button><div id="ds"></div></div>
 <div class="p"><details><summary>⚙ الإعدادات (الشيتات، الإجابة النموذجية، الشعار)</summary><br>${Object.entries(SH).map(([k,v])=>`<label><input type="checkbox" style="width:auto" ${cfg.active[k]?'checked':''} onchange="cfg.active['${k}']=this.checked?1:0;SV('cfg',cfg)"> ${v.n}</label> <button class="g" onclick="rub('${k}')">الإجابة النموذجية ${cfg.rub&&cfg.rub[k]&&cfg.rub[k].ok?'✔ معتمدة':'(غير معتمدة)'}</button><br>`).join('')}<label>أقصى فرق مسموح بين الفلترين (درجة)</label><input type="number" step=".25" min=".25" max="3" value="${TOL()}" onchange="cfg.tol=+this.value||.5;SV('cfg',cfg);dash('${gr}')" style="width:120px"><br><label><input type="checkbox" style="width:auto" ${cfg.auto===0?'':'checked'} onchange="cfg.auto=this.checked?1:0;SV('cfg',cfg)"> تشغيل التصحيح الذكي تلقائياً لكل الأوراق الجديدة عند فتح الداشبورد</label><br><label>مفتاح التصحيح الذكي للأدمن (مطلوب لتشغيل الفلتر 2)</label><input dir="ltr" placeholder="Paste API key..." value="${GKEY?'••••'+esc(GKEY.slice(-4)):''}" onchange="if(this.value&&!/^•/.test(this.value)){GKEY=this.value.trim();gkSave(GKEY)}"><br><label>شعار المعهد</label><input type="file" accept="image/*" onchange="lg(this)"><label>AI proxy URL (اختياري)</label><input dir="ltr" value="${esc(cfg.proxy||'')}" onchange="cfg.proxy=this.value.trim();SV('cfg',cfg)"><br><button class="g" onclick="cal()">معايرة (Gold set)</button></details></div><button class="g" onclick="splash()">تسجيل خروج</button></div>`)}
 function rev(i){const s=subs[i],e=eff(s),a=s.ai,c=chk(s);show(`<div class="ad" dir="rtl"><div class="p"><h2>مراجعة: ${esc(s.n)} <small>(${s.s} - مجموعة ${esc(s.g)})</small></h2>${BD(c.c,c.t)}${c.R.length?'<ul style="color:#fbbf24">'+c.R.map(r=>'<li>'+esc(r)+'</li>').join('')+'</ul>':''}
 <table><tr><th></th><th>① قواعد</th><th>② التصحيح الذكي</th><th>الفرق</th><th>النهائي الحالي</th></tr><tr><td>خطة التمريض (من ${s.max>15?5:2.5})</td><td>${s.cp}</td><td>${a?a.cp:'—'}</td><td>${a?Math.abs(a.cp-s.cp).toFixed(2):'—'}</td><td><b>${e.cp}</b></td></tr><tr><td>التثقيف الصحي (من ${s.max>15?5:2.5})</td><td>${s.he}</td><td>${a?a.he:'—'}</td><td>${a?Math.abs(a.he-s.he).toFixed(2):'—'}</td><td><b>${e.he}</b></td></tr><tr><td>المجموع الكلي</td><td>${+((s.a||0)+(s.pg||0)+s.cp+s.he).toFixed(2)}</td><td>${a?+((s.a||0)+(s.pg||0)+a.cp+a.he).toFixed(2):'—'}</td><td></td><td><b>${e.tot}</b></td></tr></table>${a?`<small>ثقة التصحيح الذكي: ${a.conf*100|0}%</small>${a.v2?`<br><small>التصحيح الذكي الثاني المستقل: خطة ${a.v2.cp} / تثقيف ${a.v2.he}</small>`:''} <button class="g" onclick="runOne(${i},1,this)">${a.v2?'أعد':'شغّل'} التصحيح الذكي الثاني</button>`:'<p><button onclick="runOne('+i+',0,this)">شغّل الفلتر 2 (التصحيح الذكي) لهذه الورقة</button></p>'}</div>
@@ -1255,6 +1255,92 @@ function draftRestore(){var k=draftKey();if(!k||!document.getElementById('cpb'))
       }catch(e){console.warn(e);if(document.body.contains(box))body.textContent='تعذّر تجهيز الصفحة: '+(e&&(e.message||e.code)||e)}
     })();
   }
+})();
+</script>
+
+<script>
+/* ===== Approve everything that needs review (all groups, both sections) - the Excel report of suspicious papers is saved FIRST ===== */
+(function(){
+var CAT=[
+ ['sim',/تشابه/,'تشابه مع طالب آخر (احتمال نقل/غش)',1],
+ ['unsafe',/عبارات خطرة|تنبيه أمان/,'عبارات خطرة / تنبيه أمان',1],
+ ['scn',/سيناريو/,'السيناريو المكتوب يختلف عن الرسمي',1],
+ ['empty',/فاضية|قصيرة جداً|تثقيف صحي ناقص/,'ورقة فاضية أو ناقصة',1],
+ ['dup',/مكررة|متكررة/,'تكرار صفوف أو إجابات',1],
+ ['unst',/غير ثابت/,'التصحيح الذكي غير ثابت (تصحيحان مختلفان)',0],
+ ['conf',/ثقة التصحيح الذكي/,'ثقة التصحيح الذكي منخفضة',0],
+ ['diff',/^فرق /,'فرق بين التصحيح بالقواعد والذكي',0],
+ ['noai',/لم يُصحَّح بالتصحيح الذكي/,'لم يُصحَّح بالتصحيح الذكي بعد',0]
+];
+var SXN={f:'طالبات',m:'طلاب'};
+function say(m){var e=document.getElementById('ds');if(e)e.textContent=m}
+function collect(){
+  var out=[],pairs={};
+  subs.forEach(function(s,i){
+    var c;try{c=chk(s)}catch(e){return}
+    if(!c||c.k!='bad')return;
+    var e=eff(s),a=s.ai,R=(c.R||[]).slice(),cats=[],high=0;
+    CAT.forEach(function(k){if(R.some(function(r){return k[1].test(r)})){cats.push(k[2]);if(k[3])high=1}});
+    var big=0;if(a){big=Math.max(Math.abs(a.cp-s.cp),Math.abs(a.he-s.he));if(big>=1){high=1;if(cats.indexOf('فرق كبير بين التصحيحين (≥ 1 درجة)')<0)cats.push('فرق كبير بين التصحيحين (≥ 1 درجة)')}}
+    var sm=[];try{sm=cpy(s)||[]}catch(x){}
+    sm.forEach(function(x){var k=[s.n,x.n].sort().join('|')+'|'+s.s;if(!pairs[k])pairs[k]={a:s.n,ga:s.g,b:x.n,sh:s.s,p:x.p}});
+    out.push({i:i,s:s,e:e,a:a,R:R,cats:cats,high:high,big:big,sm:sm});
+  });
+  out.sort(function(x,y){return y.high-x.high||(+x.s.g||0)-(+y.s.g||0)||String(x.s.g).localeCompare(String(y.s.g))||String(x.s.n).localeCompare(String(y.s.n),'ar')});
+  return {rows:out,pairs:Object.values(pairs)}
+}
+async function exportXl(D){
+  var H=['#','الاسم','المجموعة','القسم','الشيت','قواعد: خطة / تثقيف','ذكي: خطة / تثقيف','الدرجة الحالية','مستوى الشك','نوع الشك','التفاصيل','متشابه مع','ثقة التصحيح الذكي'];
+  var rows=D.rows.map(function(r,k){var s=r.s,a=r.a;return[k+1,s.n,s.g,SXN[sxOf(s)]||sxOf(s),s.s,s.cp+' / '+s.he,a?a.cp+' / '+a.he:'—',r.e.tot+' / '+s.max,r.high?'⚠ مشكوك فيه':'مراجعة عادية',r.cats.join(' | '),r.R.join(' | '),r.sm.slice(0,5).map(function(x){return x.n+' ('+x.p+'%)'}).join('، '),a?Math.round((a.conf||0)*100)+'%':'—']});
+  var cnt={};D.rows.forEach(function(r){r.cats.forEach(function(c){cnt[c]=(cnt[c]||0)+1})});
+  var sum=[['البند','العدد'],['إجمالي الأوراق التي تحتاج مراجعة',D.rows.length],['منها مشكوك فيها (شك قوي)',D.rows.filter(function(r){return r.high}).length],['مراجعة عادية فقط',D.rows.filter(function(r){return !r.high}).length],['',''],['نوع الشك','عدد الأوراق']].concat(Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]}).map(function(k){return[k,cnt[k]]}));
+  var pr=[['الطالب الأول','مجموعته','الطالب الثاني','الشيت','نسبة التشابه %']].concat(D.pairs.sort(function(x,y){return y.p-x.p}).map(function(p){return[p.a,p.ga,p.b,p.sh,p.p]}));
+  var nm='Suspicious_Papers_'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.xlsx';
+  if(window.XLSX){
+    var w=XLSX.utils.book_new(),W=[{wch:5},{wch:32},{wch:9},{wch:8},{wch:16},{wch:14},{wch:14},{wch:13},{wch:14},{wch:46},{wch:70},{wch:40},{wch:12}];
+    var s1=XLSX.utils.aoa_to_sheet([H].concat(rows));s1['!cols']=W;s1['!autofilter']={ref:'A1:M'+(rows.length+1)};
+    var s2=XLSX.utils.aoa_to_sheet(sum);s2['!cols']=[{wch:48},{wch:14}];
+    var s3=XLSX.utils.aoa_to_sheet(pr);s3['!cols']=[{wch:32},{wch:10},{wch:32},{wch:16},{wch:14}];
+    XLSX.utils.book_append_sheet(w,s1,'المشكوك فيهم');XLSX.utils.book_append_sheet(w,s2,'ملخص');XLSX.utils.book_append_sheet(w,s3,'أزواج التشابه');
+    w.Workbook={Views:[{RTL:true}]};
+    await dl(nm,XLSX.write(w,{type:'array',bookType:'xlsx'}));
+  }else{
+    await dl(nm.replace('.xlsx','.csv'),'\uFEFF'+[H].concat(rows).map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"'}).join(',')}).join('\n'));
+  }
+}
+async function prepare(){
+  if(typeof sb=='undefined'||!sb)throw new Error('Supabase غير متصل');
+  say('⏳ جارٍ تحميل كل الأوراق من Supabase وتصحيحها…');
+  await capLoadAll();await ensureAllGraded();
+  say('⏳ جارٍ فحص الأوراق المشكوك فيها…');
+  return collect()
+}
+window.suspectXl=async function(){
+  if(window._okeBusy)return;window._okeBusy=1;
+  try{var D=await prepare();if(!D.rows.length){say('');return alert('لا توجد أوراق تحتاج مراجعة')}await exportXl(D);say('✔ تم تصدير Excel: '+D.rows.length+' ورقة ('+D.rows.filter(function(r){return r.high}).length+' مشكوك فيها). لم يتم اعتماد أي شيء.')}
+  catch(e){say('');alert('تعذّر التصدير: '+(e&&(e.message||e.code)||e))}
+  finally{window._okeBusy=0}
+};
+window.okEverything=async function(){
+  if(window._okeBusy)return;window._okeBusy=1;
+  var G0=(document.getElementById('grsel')||{}).value;
+  try{
+    var D=await prepare(),n=D.rows.length,h=D.rows.filter(function(r){return r.high}).length;
+    if(!n){say('');return alert('لا توجد أوراق تحتاج مراجعة في أي مجموعة')}
+    await exportXl(D);                     /* the report is saved BEFORE anything is approved */
+    say('✔ تم تصدير تقرير المشكوك فيهم ('+n+' ورقة). في انتظار تأكيدك للاعتماد…');
+    if(!confirm('تم تنزيل ملف Excel بالمشكوك فيهم.\n\nسيتم اعتماد '+n+' ورقة تحتاج مراجعة في كل المجموعات بدرجاتها الحالية، منها '+h+' ورقة مشكوك فيها (تشابه / عبارات خطرة / سيناريو مختلف / ورقة ناقصة / فرق كبير)، وستظهر نتائجها للطلاب.\n\nموافق = اعتماد الكل   |   إلغاء = لا يُعتمد شيء')){say('تم الإلغاء، لم يُعتمد أي شيء. ملف Excel محفوظ عندك.');return}
+    D.rows.forEach(function(r){var s=r.s,e=r.e;(s.log=s.log||[]).push({t:new Date().toLocaleString(),f:'CP '+e.cp+' / HE '+e.he,to:'اعتماد جماعي شامل',r:'اعتماد كل الأوراق التي تحتاج مراجعة'+(r.high?' (كانت مشكوكاً فيها: '+r.cats.join('، ')+')':'')+' - بعد تصدير تقرير Excel'});s.ok=1});
+    try{SV('subs',subs)}catch(e){}
+    say('⏳ جارٍ حفظ الاعتماد في Supabase…');
+    await cloudSync();
+    var failed=D.rows.filter(function(r){return typeof _sig!='undefined'&&_sig[r.s.rid]!==SIGF(r.s)}).length;
+    if(failed){say('⚠ تم اعتماد '+(n-failed)+' ورقة، و'+failed+' لم تُحفظ بعد في السحابة. اضغط تحديث من السحابة وأعد المحاولة.');return alert('⚠ '+failed+' ورقة لم تُحفظ في Supabase بعد (راجع الشريط الأحمر أسفل الصفحة). أعد الضغط على الزر ليكمل الحفظ.')}
+    say('');dash(G0||undefined);
+    setTimeout(function(){alert('✔ تم اعتماد '+n+' ورقة وحفظها في Supabase ('+h+' منها كانت مشكوك فيها).')},200);
+  }catch(e){say('');alert('تعذّر الاعتماد: '+(e&&(e.message||e.code)||e))}
+  finally{window._okeBusy=0}
+};
 })();
 </script>
 </body></html>
