@@ -167,14 +167,14 @@ const wl=w=>{const o=[];let l='';w.split(/\s+/).forEach(x=>{(x.match(/.{1,11}/g)
 $('#cv').style.position='relative';
 $('#cv').insertAdjacentHTML('afterbegin','<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;padding:6px 0;max-width:1000px">'+['Name','Gravida','Para','Hospital no.','Date of admission','Time of admission','Ruptured membranes (hours)'].map(p=>`<input class="phi" placeholder="${p}" title="${p}">`).join('')+'</div>');
 $('#tools').innerHTML='<b>Tools</b><small><br>Click or drag onto the chart. Click a text-row cell to type.</small>'+TL.map(t=>`<div class="tl" data-t="${t[0]}" draggable="true">${t[2]?`<i style="display:inline-block;width:16px;height:16px;border:1px solid #333;vertical-align:middle;margin-right:6px;background:${t[2]}"></i>`:''}${t[1]}</div>`).join('')+'<button onclick="undo()">Undo</button><button onclick="redo()">Redo</button><button class="g" onclick="snap();marks=[];tx={};draw()">Clear</button><button onclick="$(\'#pg\').style.display=\'none\';$(\'#pgs\').textContent=(marks.length+Object.keys(tx).length)+\' entries saved\';$(\'#pgs\').style.color=\'\'">Done</button><div id="tip" style="color:#e11;font-size:12px"></div><div id="qp"></div>';
-document.querySelectorAll('.tl').forEach(e=>{e.onclick=()=>{tool=e.dataset.t;pend=null;qpanel();document.querySelectorAll('.tl').forEach(x=>x.classList.toggle('on',x==e))};e.ondragstart=ev=>{tool=e.dataset.t;qpanel();ev.dataTransfer.setData('text','x')}});
-const cv=$('#c');cv.ondragover=e=>e.preventDefault();cv.ondrop=e=>{e.preventDefault();put(e)};cv.onclick=put;let lastK='';cv.onpointerdown=()=>{lastK=''};cv.onpointermove=e=>{if(e.buttons==1&&tool.length==2&&tool[0]=='C'){const[x,y]=pos(e),k=Math.floor((x-PX)/CW)+'_'+Math.floor((y-570)/20);if(k!=lastK){lastK=k;put(e)}}};
+document.querySelectorAll('.tl').forEach(e=>{if(matchMedia('(pointer:coarse)').matches)e.draggable=false;e.onclick=()=>{tool=e.dataset.t;pend=null;qpanel();document.querySelectorAll('.tl').forEach(x=>x.classList.toggle('on',x==e))};e.ondragstart=ev=>{tool=e.dataset.t;qpanel();ev.dataTransfer.setData('text','x')}});
+const cv=$('#c');cv.ondragover=e=>e.preventDefault();cv.ondrop=e=>{e.preventDefault();put(e)};cv.onclick=put;let lastK='';cv.onpointerdown=()=>{lastK=''};cv.onpointermove=e=>{if(e.pointerType!='touch'&&e.buttons==1&&tool.length==2&&tool[0]=='C'){const[x,y]=pos(e),k=Math.floor((x-PX)/CW)+'_'+Math.floor((y-570)/20);if(k!=lastK){lastK=k;put(e)}}};
 function openPg(){$('#pg').style.display='flex';document.querySelector('.tl').click();draw()}
-function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height]}
+function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*1000/r.width,(e.clientY-r.top)*CH/r.height]}
 const mx=m=>PX+m.c*CW+CW/2,my=m=>m.t=='LQ'?215:m.t=='MO'?235:m.t=='F'?20+(200-m.v)/10*15:m.t=='P'||m.t=='B'?820+(180-m.v)/10*15:m.t[0]=='C'?570+(5-m.v)*20+10:500-m.v*24;
 function near(m,x,y){let yy=my(m),hh=14;if(m.t=='B'){const b=my({t:'B',v:m.w});yy=(yy+b)/2;hh=Math.abs(my(m)-b)/2+8}else if(m.t[0]=='C'){const t=570+(5-m.v)*20;yy=(t+670)/2;hh=(670-t)/2+4}return Math.abs(mx(m)-x)<20&&Math.abs(yy-y)<hh}
 const snap=()=>{U.push(JSON.stringify({m:marks,t:tx}));Rd.length=0},undo=()=>{if(U.length){Rd.push(JSON.stringify({m:marks,t:tx}));const q=JSON.parse(U.pop());marks=q.m;tx=q.t;draw()}},redo=()=>{if(Rd.length){U.push(JSON.stringify({m:marks,t:tx}));const q=JSON.parse(Rd.pop());marks=q.m;tx=q.t;draw()}};
-function edit(r,c,y0,y1){const o=$('#ed');o&&o.remove();const i=document.createElement('input');i.id='ed';i.value=tx[r+'_'+c]||'';const sc=cv.getBoundingClientRect().width/cv.width;i.style.cssText=`position:absolute;z-index:5;width:${CW*sc}px;left:${cv.offsetLeft+(PX+c*CW)*sc}px;top:${cv.offsetTop+y0*sc}px;height:${(y1-y0)*sc}px;padding:2px;font-size:11px`;$('#cv').append(i);i.focus();let d=0;const ok=()=>{if(d++)return;snap();if(i.value.trim())tx[r+'_'+c]=i.value.trim();else delete tx[r+'_'+c];i.remove();draw()};i.onkeydown=e=>{if(e.key=='Enter')ok();if(e.key=='Escape'){d=1;i.remove()}};i.onblur=ok}
+function edit(r,c,y0,y1){const o=$('#ed');o&&o.remove();const i=document.createElement('input');i.id='ed';i.value=tx[r+'_'+c]||'';const sc=cv.getBoundingClientRect().width/1000;i.style.cssText=`position:absolute;z-index:5;width:${CW*sc}px;left:${cv.offsetLeft+(PX+c*CW)*sc}px;top:${cv.offsetTop+y0*sc}px;height:${(y1-y0)*sc}px;padding:2px;font-size:11px`;$('#cv').append(i);i.focus();let d=0;const ok=()=>{if(d++)return;snap();if(i.value.trim())tx[r+'_'+c]=i.value.trim();else delete tx[r+'_'+c];i.remove();draw()};i.onkeydown=e=>{if(e.key=='Enter')ok();if(e.key=='Escape'){d=1;i.remove()}};i.onblur=ok}
 function put(e){const[x,y]=pos(e),c=Math.floor((x-PX)/CW),tip=$('#tip');if(c<0||c>11)return;tip.textContent='';tip.style.color='#e11';const tr=TR.find(r=>y>=r[1]&&y<=r[2]);
 if(tr){const lq=tr[0]=='liq',mo=tr[0]=='mou',ty=lq?'LQ':'MO';if(tool=='E'){snap();const k=marks.findIndex(m=>(lq||mo)&&m.t==ty&&m.c==c);if(k>=0)marks.splice(k,1);delete tx[tr[0]+'_'+c];draw();return}
 if(tool.slice(0,2)=='Q:'){const q=QT[tool.slice(2)];if(q.r!=tr[0]){tip.textContent='This tool is for the "'+q.n+'" row';return}
@@ -1387,4 +1387,59 @@ window.okGroupEverything=async function(g){
 };
 })();
 </script>
-</body></html>
+<style id="mobfix">
+/* ===== Mobile partograph fix ===== */
+#pg #c{touch-action:pan-x pan-y;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#mbar{display:none}
+body.pgopen #v3b{display:none!important}
+@media (max-width:700px),(max-height:500px) and (pointer:coarse){
+#pg{flex-direction:column;box-sizing:border-box;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#tools{width:auto;display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border-right:0;border-bottom:1px solid var(--b);align-items:center;flex-shrink:0;padding:6px}
+#tools>b,#tools>small,#tools>button{display:none}
+.tl{min-width:112px;flex-shrink:0;font-size:13px;margin:2px;padding:9px 6px;touch-action:manipulation}
+#mbar{display:block;flex-shrink:0;max-height:42vh;overflow-y:auto;background:var(--c);border-bottom:1px solid var(--b)}
+#mbar .mrow{display:flex;gap:5px;align-items:center;padding:4px 6px}
+#mbar #pgcur{font-size:13px;font-weight:700;color:var(--p);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mbar button{flex:1;margin:0;padding:9px 4px;min-height:42px;font-size:14px;width:auto}
+#mbar #mZo,#mbar #mZi{flex:0 0 46px;font-size:20px;line-height:1;font-weight:700}
+#mbar #tip{display:block;padding:6px 10px;font-size:14px;font-weight:600;line-height:1.5}
+#mbar #tip:empty{display:none}
+#mbar #qp{position:static;max-width:none;margin:0;border:0;border-top:1px solid var(--b);border-radius:0;box-shadow:none;max-height:30vh;overflow-y:auto}
+#mbar #qp button.chip{flex:none;min-height:38px;padding:7px 12px}
+#mbar #qp input,#ed,.phi{font-size:16px!important}
+#cv{padding:4px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+}
+</style><script>/* ===== Mobile partograph fix ===== */
+(function(){
+var MQ=matchMedia('(max-width:700px),(max-height:500px) and (pointer:coarse)');
+var pg=document.getElementById('pg'),tools=document.getElementById('tools'),cvw=document.getElementById('cv'),c=document.getElementById('c');
+var tip=document.getElementById('tip'),qp=document.getElementById('qp');
+if(!pg||!tools||!cvw||!c||!tip||!qp)return;
+var zm=1.4,Z0=.9,Z1=2.4;
+var bar=document.createElement('div');bar.id='mbar';
+bar.innerHTML='<div class="mrow"><span id="pgcur"></span></div><div class="mrow"><button id="mUn">\u21a9 Undo</button><button id="mRe">\u21aa Redo</button><button id="mZo" aria-label="Zoom out">\u2212</button><button id="mZi" aria-label="Zoom in">+</button><button id="mCl" class="g">Clear</button><button id="mDn">\u2714 Done</button></div><div id="mhold"></div>';
+pg.insertBefore(bar,cvw);
+var hold=bar.querySelector('#mhold'),cur=bar.querySelector('#pgcur');
+function setRes(k){var w=1000*k,h=CH*k;if(c.width!==w){c.width=w;c.height=h}c.getContext('2d').setTransform(k,0,0,k,0,0);try{draw()}catch(e){}}
+function setZoom(z,keep){z=Math.max(Z0,Math.min(Z1,z));var r=z/zm;zm=z;c.style.width=(1000*z)+'px';c.style.maxWidth='none';c.style.height='auto';if(keep){cvw.scrollLeft*=r;cvw.scrollTop*=r}var e=document.getElementById('ed');if(e)e.remove()}
+function apply(){
+ if(MQ.matches){hold.appendChild(tip);hold.appendChild(qp);setRes(2);setZoom(zm,false)}
+ else{tools.appendChild(tip);tools.appendChild(qp);c.style.width='';c.style.maxWidth='';c.style.height='';setRes(1)}
+}
+bar.querySelector('#mUn').onclick=function(){undo()};
+bar.querySelector('#mRe').onclick=function(){redo()};
+bar.querySelector('#mZo').onclick=function(){setZoom(zm-.2,true)};
+bar.querySelector('#mZi').onclick=function(){setZoom(zm+.2,true)};
+bar.querySelector('#mCl').onclick=function(){if(confirm('Clear the whole chart? / \u0645\u0633\u062d \u0627\u0644\u0631\u0633\u0645 \u0643\u0644\u0647\u061f')){snap();marks=[];tx={};draw()}};
+bar.querySelector('#mDn').onclick=function(){pg.style.display='none';var s=document.getElementById('pgs');if(s){s.textContent=(marks.length+Object.keys(tx).length)+' entries saved';s.style.color=''}};
+var Y0={X:250,O:250,F:10,C1:560,C2:560,C3:560,LI:195,LC:195,LM:195,LB:195,LA:195,M0:195,M1:195,M2:195,M3:195,'Q:drg':720,'Q:oxy':670,'Q:drp':670,'Q:tim':510,'Q:pro':1030,'Q:ace':1030,'Q:vol':1030,P:810,B:810};
+document.querySelectorAll('#tools .tl').forEach(function(b){b.addEventListener('click',function(){
+ cur.textContent='\u25b6 '+b.textContent.replace(/\s+/g,' ').trim();
+ var y=Y0[b.dataset.t];if(!MQ.matches||y==null)return;
+ setTimeout(function(){cvw.scrollTo({top:Math.max(0,c.offsetTop+(y-14)*zm),behavior:'smooth'})},40)})});
+if(typeof openPg==='function'){var _o=openPg;window.openPg=function(){var r=_o.apply(this,arguments);cvw.scrollLeft=0;if(MQ.matches){tip.style.color='#06c';tip.textContent='Pick a tool above, then tap the chart. Drag with your finger to move, use + / \u2212 to zoom. \u0627\u062e\u062a\u0627\u0631 \u0627\u0644\u0623\u062f\u0627\u0629 \u062b\u0645 \u062f\u0648\u0633 \u0639\u0644\u0649 \u0627\u0644\u0631\u0633\u0645'}return r}}
+function pgo(){document.body.classList.toggle('pgopen',getComputedStyle(pg).display!=='none')}pgo();new MutationObserver(pgo).observe(pg,{attributes:true,attributeFilter:['style']});
+if(MQ.addEventListener)MQ.addEventListener('change',apply);else MQ.addListener(apply);
+apply();
+})();
+</script></body></html>
